@@ -18,3 +18,17 @@ Ansible Nextcloud Collection.
   * status: todo
 * 🗨 `talk` module to post messages in conversations
   * status: todo
+
+# Usage
+
+## Install
+
+`ansible-galaxy collection install markuman.nextcloud`
+
+## lookup passwords
+
+```yml
+- name: Retrieve Password with label "Stackoverflow"
+  debug:
+    var: lookup('markuman.nextcloud.passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token')
+```
