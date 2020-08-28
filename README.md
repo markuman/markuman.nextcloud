@@ -1,6 +1,7 @@
 # nextcloud_collection
 
-Ansible Nextcloud Collection.
+Ansible Nextcloud Collection.  
+https://galaxy.ansible.com/markuman/nextcloud
 
 ### SCM
 
@@ -13,15 +14,17 @@ Ansible Nextcloud Collection.
 ### Features
 
 * 🔑 `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
-  * status: draft
+    * status: draft
 * 💾 `file` module to download, upload and delete files
-  * status: todo
+    * status: todo
 * 🗨 `talk` module to post messages in conversations
-  * status: todo
+    * status: todo
 
 # Usage
 
 ## Install
+
+https://galaxy.ansible.com/markuman/nextcloud
 
 `ansible-galaxy collection install markuman.nextcloud`
 
