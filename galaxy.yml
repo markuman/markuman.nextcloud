@@ -5,7 +5,7 @@ readme: "README.md"
 authors:
     - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
 license:
-    - "GNU GENERAL PUBLIC LICENSE 3 or later"
+    - "GPL-3.0-or-later"
 tags:
     - nextcloud
     - collection
