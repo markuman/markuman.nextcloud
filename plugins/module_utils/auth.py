@@ -17,4 +17,10 @@ class NextcloudHandler:
             'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path),
             auth=(self.USER, self.TOKEN)
         )
-        return r
+        if r.status_code == 200:
+            return r
+        else:
+            raise AnsibleError('Nextcloud retured with status code {SC}'.format(r.status_code))
+
+    def user(self):
+        return self.USER
