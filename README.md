@@ -43,6 +43,7 @@ The collection modules and plugins require the following parameter (the paramete
 
 **work in progress**
 
+**mode: get**
 ```yml
 - name: fetch file from nextcloud
   markuman.nextcloud.file:
@@ -52,6 +53,17 @@ The collection modules and plugins require the following parameter (the paramete
     host: nextcloud.tld
     user: myuser
     api_token: xxx
+```
+
+**mode: delete**
+
+CAUTION ⚠ removes files and folders - recursive!
+
+```yml
+- name: delete file on nextcloud
+  markuman.nextcloud.file:
+    mode: delete
+    src: bla.docx
 ```
 
 ### SCM
