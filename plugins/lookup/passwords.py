@@ -4,6 +4,8 @@ __metaclass__ = type
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.lookup import LookupBase
 
+from ansible_collections.markuman.nextcloud.plugins.module_utils.auth import NextcloudHandler
+
 try:
     import requests
 except ImportError:
@@ -19,7 +21,7 @@ DOCUMENTATION = """
 lookup: markuman.nextcloud.passwords
 author:
     - Markus Bergholz <markuman@gmail.com>
-version_added: 0.1.0
+version_added: 0.0.1
 short_description: read passwords from nextcloud "passwords" app
 description:
     - This lookup returns the password stored in nextcloud passwords app based by label
@@ -49,24 +51,12 @@ EXAMPLES = """
     var: lookup('nextcloud_passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token')
 """
 
-
 class LookupModule(LookupBase):
 
     def run(self, terms, variables, **kwargs):
 
-        # get options
-        host = kwargs.get('host')
-        user = kwargs.get('user')
-        token = kwargs.get('api_token')
-
-        if None in [host, user, token]:
-            raise AnsibleLookupError('Unable to perform nextcloud passwords lookup. '
-                                     'host, user, api_token and label are required.')
-
-        r = requests.get(
-            'https://{HOST}/index.php/apps/passwords/api/1.0/password/list'.format(HOST=host),
-            auth=(user, token)
-        )
+        nc = NextcloudHandler(kwargs)
+        r = nc.get("index.php/apps/passwords/api/1.0/password/list")
 
         ret = []
         for term in terms:
