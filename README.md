@@ -2,18 +2,6 @@
 
 Ansible Nextcloud Collection - is not meant to install nor to maintain your nextcloud itself.  
 It's meant to bring up your nextcloud usage to the next level ⭐⭐⭐
-  * https://galaxy.ansible.com/markuman/nextcloud
-
-
-
-
-### SCM
-
-| **host** | **category** |
-| --- | --- |
-| https://git.osuv.de/m/nextcloud_collection | origin |
-| https://gitlab.com/markuman/nextcloud_collection | pull mirror |
-| https://github.com/markuman/nextcloud_collection | push mirror |
 
 ### Features
 
@@ -50,3 +38,26 @@ The collection modules and plugins require the following parameter (the paramete
   debug:
     var: lookup('markuman.nextcloud.passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token')
 ```
+
+## file module
+
+**work in progress**
+
+```yml
+- name: fetch file from nextcloud
+  markuman.nextcloud.file:
+    mode: get
+    src: anythingeverything.jpg
+    dest: /tmp/anythingeverything.jpg
+    host: nextcloud.tld
+    user: myuser
+    api_token: xxx
+```
+
+### SCM
+
+| **host** | **category** |
+| --- | --- |
+| https://git.osuv.de/m/nextcloud_collection | origin |
+| https://gitlab.com/markuman/nextcloud_collection | pull mirror |
+| https://github.com/markuman/nextcloud_collection | push mirror |
