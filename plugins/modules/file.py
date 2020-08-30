@@ -54,6 +54,14 @@ options:
     aliases:
       - dest
     type: str
+  overwrite:
+    description:
+      - Force overwrite locally on the filesystem
+      - Used only with GET parameter.
+      - one of [always, never, different]. different depends on md5sum.
+    default: 'always'
+    aliases: ['force']
+    type: str
 '''
 
 EXAMPLES = '''
@@ -69,6 +77,12 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.auth import NextcloudHandler
+import os.path
+import hashlib
+
+def write_file(destination, content):
+    with open(destination,'wb') as FILE:
+        FILE.write(content)
 
 def main():
     module = AnsibleModule(
@@ -78,7 +92,8 @@ def main():
             destination = dict(required=False, type='str', aliases=['dest']),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str')
+            api_token = dict(required=False, type='str'),
+            overwritten = dict(required=False, type='str', default='always', aliases=['force'])
         )
     )
 
@@ -87,18 +102,43 @@ def main():
     mode = module.params.get("mode")
     source = module.params.get("source")
     destination = module.params.get("destination")
+    overwritten = module.params.get("overwritten")
 
     if mode == "get":
         if destination is None:
             raise AnsibleError('No destination is given')
 
+        change = False
         r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
-        with open(destination,'wb') as FILE:
-            FILE.write(r.content)
-        change = True
+        if overwritten == 'always':
+            change = True
+            write_file(destination, r.content)
+
+        elif overwritten == 'different':
+            change = False
+            if os.path.isfile(destination):
+
+                # md5sum local file
+                local = hashlib.md5()
+                with open(destination, "rb") as FILE:
+                    for chunk in iter(lambda: FILE.read(4096), b""):
+                        local.update(chunk)
+
+                # md5sum remote file
+                remote = hashlib.md5(r.content)
+                
+                if remote.hexdigest() != local.hexdigest():
+                    change = True
+                    write_file(destination, r.content)
+            else:
+                write_file(destination, r.content)
 
     elif mode == "delete":            
         r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+
+    elif mode == "put":
+        r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
+                            source)
 
 
     module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source})
