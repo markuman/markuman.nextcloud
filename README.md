@@ -50,6 +50,7 @@ The collection modules and plugins require the following parameter (the paramete
     mode: get
     src: anythingeverything.jpg
     dest: /tmp/anythingeverything.jpg
+    overwritten: different # 'always' is the default. 'never' is an option too.
     host: nextcloud.tld
     user: myuser
     api_token: xxx
@@ -64,6 +65,16 @@ CAUTION ⚠ removes files and folders - recursive!
   markuman.nextcloud.file:
     mode: delete
     src: bla.docx
+```
+
+**mode: put**
+
+```yml
+- name: upload file on nextcloud
+  markuman.nextcloud.file:
+    mode: put
+    src: /tmp/testtt.jpg
+    dest: testtt.jpg
 ```
 
 ### SCM
