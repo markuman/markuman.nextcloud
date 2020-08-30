@@ -1,6 +1,6 @@
 namespace: "markuman"
 name: "nextcloud"
-version: "1.1.0"
+version: "1.1.1"
 readme: "README.md"
 authors:
     - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
