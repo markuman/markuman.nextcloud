@@ -18,9 +18,8 @@ It's meant to bring up your nextcloud usage to the next level ⭐⭐⭐
 ### Features
 
 * 🔑 `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
-    * status: draft
 * 💾 `file` module to download, upload and delete files
-    * status: todo
+    * status: work in progress
 * 🗨 `talk` module to post messages in conversations
     * status: todo
 
