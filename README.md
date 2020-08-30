@@ -32,6 +32,18 @@ https://galaxy.ansible.com/markuman/nextcloud
 
 `ansible-galaxy collection install markuman.nextcloud`
 
+## Auth
+
+You must authenticate with an app token. (Settings -> Security -> "Create new app password")
+
+The collection modules and plugins require the following parameter (the parameter can also be set via ENV variable).
+
+| **Parameter** | **ENV Variable** |
+| --- | --- |
+| `host` | `NEXTCLOUD_HOST` |
+| `user` | `NEXTCLOUD_USER` |
+| `api_token` | `NEXTCLOUD_TOKEN` |
+
 ## lookup passwords
 
 ```yml
