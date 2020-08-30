@@ -24,17 +24,20 @@ class NextcloudHandler:
         if r.status_code == 200:
             return r
         else:
-            raise AnsibleError('Nextcloud retured with status code {SC}'.format(r.status_code))
+            raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = r.status_code))
 
     def delete(self, path):
         r = requests.delete(
             'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path),
             auth=(self.USER, self.TOKEN)
         )
-        if r.status_code == 200:
-            return r
+
+        if r.status_code == 204:
+            return r, True
+        elif r.status_code == 404:
+            return r, False
         else:
-            raise AnsibleError('Nextcloud retured with status code {SC}'.format(r.status_code))
+            raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = r.status_code))
 
     def user(self):
         return self.USER

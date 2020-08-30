@@ -89,10 +89,16 @@ def main():
     destination = module.params.get("destination")
 
     if mode == "get":
+        if destination is None:
+            raise AnsibleError('No destination is given')
+
         r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
         with open(destination,'wb') as FILE:
             FILE.write(r.content)
         change = True
+
+    elif mode == "delete":            
+        r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
 
 
     module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source})
