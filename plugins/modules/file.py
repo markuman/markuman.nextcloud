@@ -37,11 +37,13 @@ options:
       - Weather the file should be downloaded (get), uploaded (put) or deleted (delete).
     required: true
     type: str
-  src:
+  source:
     description:
-      - When the mode is get or delete, src describes the file location on nextcloud.
-      - When the mode is put, src describes the origin file location which will be uploaded to nextcloud.
+      - When the mode is get or delete, source describes the file location on nextcloud.
+      - When the mode is put, source describes the origin file location which will be uploaded to nextcloud.
     required: true
+    aliases:
+      - src
     type: str
   destination:
     description:
@@ -49,6 +51,8 @@ options:
       - When the mode is put, destination describes the file location on nextcloud.
       - When the mode is delete, destination is not required.
     required: false
+    aliases:
+      - dest
     type: str
 '''
 
@@ -56,7 +60,7 @@ EXAMPLES = '''
     - name: fetch file from nextcloud
       markuman.nextcloud.file:
         mode: get
-        src: anythingeverything.jpg
+        source: anythingeverything.jpg
         destination: /tmp/anythingeverything.jpg
         host: nextcloud.tld
         user: myusername
@@ -70,8 +74,8 @@ def main():
     module = AnsibleModule(
         argument_spec = dict(
             mode = dict(required=True, type='str'),
-            src = dict(required=True, type='str'),
-            destination = dict(required=False, type='str'),
+            source = dict(required=True, type='str', aliases=['src']),
+            destination = dict(required=False, type='str', aliases=['dest']),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
             api_token = dict(required=False, type='str')
@@ -81,17 +85,17 @@ def main():
     nc = NextcloudHandler(module.params)
 
     mode = module.params.get("mode")
-    src = module.params.get("src")
+    source = module.params.get("source")
     destination = module.params.get("destination")
 
     if mode == "get":
-        r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=src))
+        r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
         with open(destination,'wb') as FILE:
             FILE.write(r.content)
         change = True
 
 
-    module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'src': src})
+    module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source})
     
 
 if __name__ == '__main__':
