@@ -21,10 +21,27 @@ class NextcloudHandler:
             'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path),
             auth=(self.USER, self.TOKEN)
         )
+
         if r.status_code == 200:
             return r
+        elif r.status_code == 404:
+            raise AnsibleError('File {FILE} does not exist'.format(FILE=path))
         else:
-            raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = r.status_code))
+            self.status_code_error(r.status_code)
+
+
+    def put(self, path, src):
+        r = requests.put(
+            'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path), 
+            data=open(src, 'rb'), auth=(self.USER, self.TOKEN)
+        )
+        
+        if r.status_code in [201, 204]:
+            return r, True
+        else:
+            self.status_code_error(r.status_code)
+
+
 
     def delete(self, path):
         r = requests.delete(
@@ -37,7 +54,10 @@ class NextcloudHandler:
         elif r.status_code == 404:
             return r, False
         else:
-            raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = r.status_code))
+            self.status_code_error(r.status_code)
 
     def user(self):
         return self.USER
+
+    def status_code_error(status):
+        raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
