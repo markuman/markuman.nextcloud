@@ -92,7 +92,7 @@ def main():
             destination = dict(required=False, type='str', aliases=['dest']),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str'),
+            api_token = dict(required=False, type='str', no_log=True),
             overwritten = dict(required=False, type='str', default='always', aliases=['force'])
         )
     )
