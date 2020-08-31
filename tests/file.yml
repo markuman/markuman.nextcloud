@@ -1,0 +1,78 @@
+---
+- hosts: localhost
+  gather_facts: False
+
+  tasks:
+
+    ########### prepair
+    - name: Download ansible.svg from wikipedia
+      get_url:
+        url: https://de.wikipedia.org/wiki/Ansible#/media/Datei:Ansible_logo.svg
+        dest: /tmp/ansible.svg
+
+    - name: delete file on nextcloud
+      markuman.nextcloud.file:
+        mode: delete
+        src: ansible.svg
+
+    ########### test
+
+    - name: upload file on nextcloud
+      markuman.nextcloud.file:
+        mode: put
+        src: /tmp/ansible.svg
+        dest: ansible.svg
+      register: out_state
+
+    - name: state must be changed
+      assert:
+        that:
+          - out_state is changed
+
+    - name: CHANGE fetch file from nextcloud
+      markuman.nextcloud.file:
+        mode: get
+        src: ansible.svg
+        dest: /tmp/tmp.svg
+      register: out_state
+
+    - name: state must be changed
+      assert:
+        that:
+          - out_state is changed
+
+    - name: OK fetch file from nextcloud
+      markuman.nextcloud.file:
+        mode: get
+        src: ansible.svg
+        dest: /tmp/ansible.svg
+        overwritten: different
+      register: out_state
+
+    - name: state must not be changed
+      assert:
+        that:
+          - out_state is not changed
+
+    - name: delete file on nextcloud
+      markuman.nextcloud.file:
+        mode: delete
+        src: ansible.svg
+      register: out_state
+
+    - name: state must be changed
+      assert:
+        that:
+          - out_state is changed
+
+    - name: delete file on nextcloud
+      markuman.nextcloud.file:
+        mode: delete
+        src: ansible.svg
+      register: out_state
+
+    - name: state must not be changed
+      assert:
+        that:
+          - out_state is not changed
+
