@@ -8,7 +8,6 @@ It's meant to bring up your nextcloud usage to the next level ⭐⭐⭐
 * 🔑 `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
 * 💾 `file` module to download, upload and delete files
 * 🗨 `talk` module to post messages in conversations
-    * status: todo
 
 # Usage
 
@@ -74,6 +73,15 @@ CAUTION ⚠ removes files and folders - recursive!
     mode: put
     src: /tmp/testtt.jpg
     dest: testtt.jpg
+```
+
+## talk module
+
+```yml
+- name: send hello
+  markuman.nextcloud.talk:
+    message: Ho Hi from Ansible.
+    channel: 8fyrb4ec
 ```
 
 ### SCM
