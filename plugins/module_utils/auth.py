@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from ansible.errors import AnsibleError
 
 class NextcloudHandler:
@@ -55,6 +56,32 @@ class NextcloudHandler:
             return r, False
         else:
             self.status_code_error(r.status_code)
+
+    def talk(self, message, channel):
+        headers = {
+            'Accept': 'application/json',
+            'OCS-APIRequest': 'true'
+        }
+
+        body = {
+            'message': message,
+            'replyTo': 0
+        }
+
+        spreed_v1_path = "ocs/v2.php/apps/spreed/api/v1/chat"
+
+        r = requests.post(
+            'https://{HOST}/{V1}/{CHANNEL}'.format(HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
+            data=body, 
+            headers=headers,
+            auth=(self.USER, self.TOKEN)
+        )
+
+        if r.status_code == 201:
+            return r, True
+        else:
+            self.status_code_error(r.status_code)
+
 
     def user(self):
         return self.USER

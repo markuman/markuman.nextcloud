@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  gather_facts: False
+
+  tasks:
+
+    - name: send hello
+      markuman.nextcloud.talk:
+        message: Ho Hi from Ansible.
+        channel: 8fyrb4ec
