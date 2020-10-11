@@ -1,7 +1,7 @@
 # nextcloud_collection
 
 Ansible Nextcloud Collection - is not meant to install nor to maintain your nextcloud itself.  
-It's meant to bring up your nextcloud usage to the next level ⭐⭐⭐
+It's meant to bring up your nextcloud usage to the next level 🚀
 
 ### Features
 
