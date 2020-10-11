@@ -21,9 +21,9 @@ https://galaxy.ansible.com/markuman/nextcloud
 
 You must authenticate with an app token. (Settings -> Security -> "Create new app password")
 
-The collection modules and plugins require the following parameter (the parameter can also be set via ENV variable).
+The collection modules and plugins require the following parameter. Alternatively the parameter can also be set as an ENV variable.
 
-| **Parameter** | **ENV Variable** |
+| **Ansible Parameter** | **ENV Variable** |
 | --- | --- |
 | `host` | `NEXTCLOUD_HOST` |
 | `user` | `NEXTCLOUD_USER` |
