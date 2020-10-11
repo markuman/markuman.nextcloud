@@ -39,7 +39,7 @@ The collection modules and plugins require the following parameter (the paramete
 
 ## file module
 
-**work in progress**
+The `file` module supports also `access_token` as an alias for `api_token`, to be closer on ansible S3 module.
 
 **mode: get**
 ```yml
