@@ -1,0 +1,11 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: test
+    image: alpine:3.12
+    commands:
+      - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl
+      - pip3 install ansible
+      - ansible-galaxy collection build
