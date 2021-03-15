@@ -24,7 +24,7 @@ steps:
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
       - sleep 15 # maybe it's faster as pulling and initializing the nextcloud container
-      - curl http://nextcloud21
+      - curl http://172.17.0.2
       - ansible-playbook tests/drone.yml
 
 services:
