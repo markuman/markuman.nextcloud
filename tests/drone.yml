@@ -26,7 +26,7 @@
             that:
               - out_state is changed
 
-        - name: CHANGE fetch file from nextcloud
+        - name: GET file from nextcloud
           markuman.nextcloud.file:
             mode: get
             src: ansible.svg
@@ -65,7 +65,7 @@
             that:
               - out_state is changed
 
-        - name: delete file on nextcloud
+        - name: immutable delete file on nextcloud
           markuman.nextcloud.file:
             mode: delete
             src: ansible.svg
@@ -76,11 +76,3 @@
           assert:
             that:
               - out_state is not changed
-
-      always:
-        - name: delete file on nextcloud
-          markuman.nextcloud.file:
-            mode: delete
-            src: ansible.svg
-            no_ssl: yes
-

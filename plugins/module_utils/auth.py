@@ -57,7 +57,7 @@ class NextcloudHandler:
             auth=(self.USER, self.TOKEN)
         )
 
-        if r.status_code == 204:
+        if r.status_code in [200, 204]:
             return r, True
         elif r.status_code == 404:
             return r, False
