@@ -10,23 +10,28 @@ steps:
       - python3 -m py_compile plugins/modules/*
 
   - name: build & test
-    image: alpine:3.13
+    image: docker:20.10.5-dind
     environment:
-      NEXTCLOUD_HOST: nextcloud21
+      NEXTCLOUD_HOST: "172.17.0.2"
       NEXTCLOUD_USER: ansible
       NEXTCLOUD_TOKEN: ansible
     commands:
       - apk --update add ansible py3-requests curl
+      - docker run -d --rm -p 80:80 -e NEXTCLOUD_ADMIN_USER=ansible -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_PASSWORD=ansible nextcloud:21-apache
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
       - sleep 15 # maybe it's faster as pulling and initializing the nextcloud container
       - curl http://nextcloud21
       - ansible-playbook tests/drone.yml
 
-
 services:
-  - name: nextcloud21
-    image: nextcloud:21-apache
-    environment:
-      NEXTCLOUD_ADMIN_USER: ansible
-      NEXTCLOUD_ADMIN_PASSWORD: ansible
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}
