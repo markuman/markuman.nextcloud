@@ -18,6 +18,7 @@
             mode: put
             src: /tmp/ansible.svg
             dest: ansible.svg
+            no_ssl: yes
           register: out_state
 
         - name: state must be changed
@@ -30,6 +31,7 @@
             mode: get
             src: ansible.svg
             dest: /tmp/tmp.svg
+            no_ssl: yes
           register: out_state
 
         - name: state must be changed
@@ -43,6 +45,7 @@
             src: ansible.svg
             dest: /tmp/ansible.svg
             overwritten: different
+            no_ssl: yes
           register: out_state
 
         - name: state must not be changed
@@ -54,6 +57,7 @@
           markuman.nextcloud.file:
             mode: delete
             src: ansible.svg
+            no_ssl: yes
           register: out_state
 
         - name: state must be changed
@@ -65,6 +69,7 @@
           markuman.nextcloud.file:
             mode: delete
             src: ansible.svg
+            no_ssl: yes
           register: out_state
 
         - name: state must not be changed
@@ -77,4 +82,5 @@
           markuman.nextcloud.file:
             mode: delete
             src: ansible.svg
+            no_ssl: yes
 
