@@ -16,7 +16,7 @@ steps:
       NEXTCLOUD_USER: ansible
       NEXTCLOUD_TOKEN: ansible
     commands:
-      - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl
+      - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl rust cargo
       - pip3 install --upgrade pip
       - pip3 install ansible
       - ansible-galaxy collection build
