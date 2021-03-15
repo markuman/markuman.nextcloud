@@ -3,6 +3,11 @@ import requests
 import json
 from ansible.errors import AnsibleError
 
+
+def status_code_error(status):
+    raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
+
+
 class NextcloudHandler:
     def __init__(self, kwargs):
         self.HTTP = 'https'
@@ -31,7 +36,7 @@ class NextcloudHandler:
         elif r.status_code == 404:
             raise AnsibleError('File {FILE} does not exist'.format(FILE=path))
         else:
-            self.status_code_error(r.status_code)
+            status_code_error(r.status_code)
 
 
     def put(self, path, src):
@@ -43,7 +48,7 @@ class NextcloudHandler:
         if r.status_code in [201, 204]:
             return r, True
         else:
-            self.status_code_error(r.status_code)
+            status_code_error(r.status_code)
 
 
     def delete(self, path):
@@ -57,7 +62,7 @@ class NextcloudHandler:
         elif r.status_code == 404:
             return r, False
         else:
-            self.status_code_error(r.status_code)
+            status_code_error(r.status_code)
 
     def talk(self, message, channel):
         headers = {
@@ -82,11 +87,8 @@ class NextcloudHandler:
         if r.status_code == 201:
             return r, True
         else:
-            self.status_code_error(r.status_code)
+            status_code_error(r.status_code)
 
 
     def user(self):
         return self.USER
-
-def status_code_error(status):
-    raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
