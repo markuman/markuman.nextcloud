@@ -10,9 +10,7 @@ steps:
       path: /var/run
     commands:
     - apk --update add curl
-    - sleep 20
-    - docker ps
-    - docker image ls
+    - sleep 25 # wait for nextcloud container
     - curl http://nextcloud21/
 
   - name: build
