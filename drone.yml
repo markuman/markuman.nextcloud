@@ -10,7 +10,9 @@ steps:
       path: /var/run
     commands:
     - apk --update add curl
-    - sleep 2
+    - sleep 20
+    - docker ps
+    - docker image ls
     - curl http://nextcloud21/
 
   - name: build
@@ -24,6 +26,3 @@ steps:
 services:
   - name: nextcloud21
     image: nextcloud:21-apache
-    environment:
-      NEXTCLOUD_ADMIN_USER: ansible
-      NEXTCLOUD_ADMIN_PASSWORD: ansible
