@@ -16,11 +16,12 @@ steps:
       NEXTCLOUD_USER: ansible
       NEXTCLOUD_TOKEN: ansible
     commands:
-      - apk --update add ansible py3-requests
+      - apk --update add ansible py3-requests curl
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
       - sleep 5 # maybe it's faster as pulling and initializing the nextcloud container
-      - ansible-playbook tests/drone.yml -v
+      - curl http://nextcloud21
+      - ansible-playbook tests/drone.yml
 
 
 services:

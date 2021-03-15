@@ -88,5 +88,5 @@ class NextcloudHandler:
     def user(self):
         return self.USER
 
-    def status_code_error(status):
-        raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
+def status_code_error(status):
+    raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
