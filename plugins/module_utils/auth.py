@@ -5,6 +5,9 @@ from ansible.errors import AnsibleError
 
 class NextcloudHandler:
     def __init__(self, kwargs):
+        self.HTTP = 'https'
+        if kwargs.get('no_ssl'):
+            self.HTTP = 'http'
         self.HOST = kwargs.get('host') or os.environ.get('NEXTCLOUD_HOST')
         if self.HOST is None:
             raise AnsibleError('Unable to continue. No Nextcloud Host is given.')
@@ -19,7 +22,7 @@ class NextcloudHandler:
 
     def get(self, path):
         r = requests.get(
-            'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path),
+            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
             auth=(self.USER, self.TOKEN)
         )
 
@@ -33,7 +36,7 @@ class NextcloudHandler:
 
     def put(self, path, src):
         r = requests.put(
-            'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path), 
+            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path), 
             data=open(src, 'rb'), auth=(self.USER, self.TOKEN)
         )
         
@@ -43,10 +46,9 @@ class NextcloudHandler:
             self.status_code_error(r.status_code)
 
 
-
     def delete(self, path):
         r = requests.delete(
-            'https://{HOST}/{PATH}'.format(HOST=self.HOST, PATH=path),
+            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
             auth=(self.USER, self.TOKEN)
         )
 
@@ -71,7 +73,7 @@ class NextcloudHandler:
         spreed_v1_path = "ocs/v2.php/apps/spreed/api/v1/chat"
 
         r = requests.post(
-            'https://{HOST}/{V1}/{CHANNEL}'.format(HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
+            '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
             data=body, 
             headers=headers,
             auth=(self.USER, self.TOKEN)

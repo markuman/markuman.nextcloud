@@ -40,6 +40,13 @@ options:
       - ID of the Nextcloud Talk channel.
     required: true
     type: str
+  no_ssl;
+    description:
+      - ability to use http:// for integration tests
+    required: false
+    type: bool
+    default: false
+    version_added: 3.0.3
 '''
 
 EXAMPLES = '''
@@ -61,7 +68,8 @@ def main():
             channel = dict(required=True, type='str'),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True)
+            api_token = dict(required=False, type='str', no_log=True),
+            no_ssl = dict(required=False, type='bool', default=False)
         )
     )
 

@@ -3,22 +3,24 @@ type: docker
 name: default
 
 steps:
-  - name: test
-    image: docker:dind
-    volumes:
-    - name: dockersock
-      path: /var/run
-    commands:
-    - apk --update add curl
-    - sleep 25 # wait for nextcloud container
-    - curl http://nextcloud21/
-
-  - name: build
+  - name: compile
     image: alpine:3.13
     commands:
+      - apk --update add python3
+      - python3 -m py_compile plugins/modules/*
+
+  - name: build & test
+    image: alpine:3.13
+    environment:
+      NEXTCLOUD_HOST: nextcloud21
+      NEXTCLOUD_USER: ansible
+      NEXTCLOUD_TOKEN: ansible
+    commands:
       - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl
+      - pip3 install --upgrade pip
       - pip3 install ansible
       - ansible-galaxy collection build
+      - ansible-playbook tests/drone.yml -v
 
 
 services:

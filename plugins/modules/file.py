@@ -63,6 +63,13 @@ options:
     default: 'always'
     aliases: ['force']
     type: str
+  no_ssl;
+    description:
+      - ability to use http:// for integration tests
+    required: false
+    type: bool
+    default: false
+    version_added: 3.0.3
 '''
 
 EXAMPLES = '''
@@ -94,7 +101,8 @@ def main():
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            overwritten = dict(required=False, type='str', default='always', aliases=['force'])
+            overwritten = dict(required=False, type='str', default='always', aliases=['force']),
+            no_ssl = dict(required=False, type='bool', default=False)
         )
     )
 
