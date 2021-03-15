@@ -27,3 +27,6 @@ steps:
 services:
   - name: nextcloud21
     image: nextcloud:21-apache
+    environment:
+      NEXTCLOUD_ADMIN_USER: ansible
+      NEXTCLOUD_ADMIN_PASSWORD: ansible
