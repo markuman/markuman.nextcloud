@@ -3,15 +3,6 @@ type: docker
 name: default
 
 steps:
-  - name: test build
-    image: alpine:3.13
-    commands:
-      - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl
-      - pip3 install ansible
-      - ansible-galaxy collection build
-
-
-steps:
   - name: test
     image: docker:dind
     volumes:
@@ -20,20 +11,19 @@ steps:
     commands:
     - apk --update add curl
     - sleep 2
-    - docker pull nextcloud:21-apache
-    - docker run -d --rm --name nextcloud -p 80:80 -e NEXTCLOUD_ADMIN_USER=ansible -e NEXTCLOUD_ADMIN_PASSWORD=ansible nextcloud:21-apache
-    - sleep 2
-    - docker ps
-    - docker inspect nextcloud
+    - curl http://nextcloud21/
+
+  - name: build
+    image: alpine:3.13
+    commands:
+      - apk --update add python3 py3-pip gcc python3-dev musl-dev libffi libffi-dev openssl-dev openssl
+      - pip3 install ansible
+      - ansible-galaxy collection build
+
 
 services:
-  - name: docker
-    image: docker:dind
-    privileged: true
-    volumes:
-    - name: dockersock
-      path: /var/run
-
-volumes:
-  - name: dockersock
-    temp: {}
+  - name: nextcloud21
+    image: nextcloud:21-apache
+    environment:
+      NEXTCLOUD_ADMIN_USER: ansible
+      NEXTCLOUD_ADMIN_PASSWORD: ansible
