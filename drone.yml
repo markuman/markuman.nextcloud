@@ -13,6 +13,15 @@ steps:
 
 steps:
   - name: test
+    image: docker:dind
+    volumes:
+    - name: dockersock
+      path: /var/run
+    commands:
+    - sleep 5 # give docker enough time to start
+    - docker ps -a
+
+  - name: test1
     image: alpine:3.13
     volumes:
     - name: dockersock
