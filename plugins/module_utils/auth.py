@@ -45,7 +45,7 @@ class NextcloudHandler:
             data=open(src, 'rb'), auth=(self.USER, self.TOKEN)
         )
         
-        if r.status_code in [201, 204]:
+        if r.status_code in [200, 201, 204]:
             return r, True
         else:
             status_code_error(r.status_code)
