@@ -40,6 +40,15 @@ options:
       - ID of the Nextcloud Talk channel.
     required: true
     type: str
+  ssl_mode:
+    description:
+      - ability to use http:// for integration tests
+      - ability to skip ssl verification
+      - Possible values `https` (default https), `http` (http), `skip` (https) 
+    required: false
+    type: str
+    default: https
+    version_added: 3.0.3
 '''
 
 EXAMPLES = '''
@@ -61,7 +70,8 @@ def main():
             channel = dict(required=True, type='str'),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True)
+            api_token = dict(required=False, type='str', no_log=True),
+            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
         )
     )
 

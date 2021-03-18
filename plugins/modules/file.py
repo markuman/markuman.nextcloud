@@ -63,6 +63,15 @@ options:
     default: 'always'
     aliases: ['force']
     type: str
+  ssl_mode:
+    description:
+      - ability to use http:// for integration tests
+      - ability to skip ssl verification
+      - Possible values `https` (default https), `http` (http), `skip` (https) 
+    required: false
+    type: str
+    default: https
+    version_added: 3.0.3
 '''
 
 EXAMPLES = '''
@@ -94,7 +103,8 @@ def main():
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            overwritten = dict(required=False, type='str', default='always', aliases=['force'])
+            overwritten = dict(required=False, type='str', default='always', aliases=['force']),
+            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
         )
     )
 
