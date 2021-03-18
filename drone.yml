@@ -20,7 +20,7 @@ steps:
       - pip3 install q
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - curl --connect-timeout 5 --max-time 10 --retry 10 --retry-delay 0 http://nextcloud21
+      - curl --connect-timeout 5 --max-time 10 --retry 10 --retry-delay 0 --retry-max-time 125 'http://nextcloud21'
       - ansible-playbook tests/drone.yml || cat /tmp/q
 
 services:
