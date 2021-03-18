@@ -11,8 +11,12 @@ def status_code_error(status):
 class NextcloudHandler:
     def __init__(self, kwargs):
         self.HTTP = 'https'
-        if kwargs.get('no_ssl'):
+        self.ssl = True
+        if not kwargs.get('ssl'):
             self.HTTP = 'http'
+        elif kwargs.get('ssl') == 'skip':
+            self.ssl = False
+
         self.HOST = kwargs.get('host') or os.environ.get('NEXTCLOUD_HOST')
         if self.HOST is None:
             raise AnsibleError('Unable to continue. No Nextcloud Host is given.')
@@ -28,7 +32,7 @@ class NextcloudHandler:
     def get(self, path):
         r = requests.get(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
-            auth=(self.USER, self.TOKEN)
+            auth=(self.USER, self.TOKEN), verify=self.ssl
         )
 
         if r.status_code == 200:
@@ -42,7 +46,7 @@ class NextcloudHandler:
     def put(self, path, src):
         r = requests.put(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path), 
-            data=open(src, 'rb'), auth=(self.USER, self.TOKEN)
+            data=open(src, 'rb'), auth=(self.USER, self.TOKEN), verify=self.ssl
         )
         
         if r.status_code in [200, 201, 204]:
@@ -54,7 +58,7 @@ class NextcloudHandler:
     def delete(self, path):
         r = requests.delete(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
-            auth=(self.USER, self.TOKEN)
+            auth=(self.USER, self.TOKEN), verify=self.ssl
         )
 
         if r.status_code in [200, 204]:
@@ -81,7 +85,8 @@ class NextcloudHandler:
             '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
             data=body, 
             headers=headers,
-            auth=(self.USER, self.TOKEN)
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
         )
 
         if r.status_code == 201:

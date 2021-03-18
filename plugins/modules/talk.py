@@ -40,9 +40,11 @@ options:
       - ID of the Nextcloud Talk channel.
     required: true
     type: str
-  no_ssl;
+  ssl;
     description:
       - ability to use http:// for integration tests
+      - ability to skip ssl verification
+      - Possible values `yes` (default https), `no` (http), `skip` (https) 
     required: false
     type: bool
     default: false

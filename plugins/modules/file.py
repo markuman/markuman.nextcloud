@@ -63,12 +63,13 @@ options:
     default: 'always'
     aliases: ['force']
     type: str
-  no_ssl;
+  ssl;
     description:
       - ability to use http:// for integration tests
+      - ability to skip ssl verification
+      - Possible values `yes` (default https), `no` (http), `skip` (https) 
     required: false
-    type: bool
-    default: false
+    default: true
     version_added: 3.0.3
 '''
 
@@ -102,7 +103,7 @@ def main():
             user = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
             overwritten = dict(required=False, type='str', default='always', aliases=['force']),
-            no_ssl = dict(required=False, type='bool', default=False)
+            ssl = dict(required=False, default=True, choices=[True, False, 'skip'])
         )
     )
 
