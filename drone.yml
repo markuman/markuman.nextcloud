@@ -19,10 +19,10 @@ steps:
       - apk --update add ansible py3-requests curl
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - sleep 60 # maybe it's faster as pulling and initializing the nextcloud container
+      - sleep 15 # maybe it's faster as pulling and initializing the nextcloud container
       - curl http://nextcloud21
       - ansible-playbook tests/drone.yml
 
 services:
   - name: nextcloud21
-    image: registry.gitlab.com/markuman/container-images:nextcloud21
+    image: public.ecr.aws/h6n8g0x7/osuv:nc21_it
