@@ -40,10 +40,6 @@ class NextcloudHandler:
 
 
     def put(self, path, src):
-        import q
-        q('{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path))
-        q(self.USER)
-        q(self.TOKEN)
         r = requests.put(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path), 
             data=open(src, 'rb'), auth=(self.USER, self.TOKEN)

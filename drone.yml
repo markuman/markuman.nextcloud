@@ -16,8 +16,7 @@ steps:
       NEXTCLOUD_USER: ansible
       NEXTCLOUD_TOKEN: ansible
     commands:
-      - apk --update add ansible py3-requests curl py3-pip
-      - pip3 install q
+      - apk --update add ansible py3-requests curl
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
       - ansible-playbook tests/drone.yml
