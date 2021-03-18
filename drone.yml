@@ -16,12 +16,12 @@ steps:
       NEXTCLOUD_USER: ansible
       NEXTCLOUD_TOKEN: ansible
     commands:
-      - apk --update add ansible py3-requests curl
+      - apk --update add ansible py3-requests curl py3-pip
+      - pip3 install q
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - sleep 120 # maybe it's faster as pulling and initializing the nextcloud container
-      - curl http://nextcloud21
-      - ansible-playbook tests/drone.yml
+      - curl --connect-timeout 5 --max-time 10 --retry 10 --retry-delay 0 http://nextcloud21
+      - ansible-playbook tests/drone.yml || cat /tmp/q
 
 services:
   - name: nextcloud21
