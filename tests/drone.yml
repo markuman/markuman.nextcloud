@@ -4,6 +4,15 @@
   gather_facts: no
 
   tasks:
+    - name: wait for nextcloud
+      get_url:
+        url: http://nextcloud21
+        dest: /tmp/test
+      register: status
+      until: status.failed == false
+      delay: 5
+      retries: 30
+
     - name: test
       block:
         ########### prepair

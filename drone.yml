@@ -20,7 +20,6 @@ steps:
       - pip3 install q
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - sleep 120
       - curl http://nextcloud21
       - ansible-playbook tests/drone.yml || cat /tmp/q
 
