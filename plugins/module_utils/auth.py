@@ -12,9 +12,9 @@ class NextcloudHandler:
     def __init__(self, kwargs):
         self.HTTP = 'https'
         self.ssl = True
-        if not kwargs.get('ssl'):
+        if kwargs.get('ssl_mode') == 'http':
             self.HTTP = 'http'
-        elif kwargs.get('ssl') == 'skip':
+        elif kwargs.get('ssl_mode') == 'skip':
             self.ssl = False
 
         self.HOST = kwargs.get('host') or os.environ.get('NEXTCLOUD_HOST')
