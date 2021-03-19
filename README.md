@@ -1,7 +1,8 @@
 # nextcloud_collection
 
 Ansible Nextcloud Collection - is not meant to install nor to maintain your nextcloud itself.  
-It's meant to bring up your nextcloud usage to the next level 🚀
+It's meant to bring up your nextcloud usage to the next level 🚀  
+No ssh required.
 
 ### Features
 
@@ -10,6 +11,16 @@ It's meant to bring up your nextcloud usage to the next level 🚀
 * 🔑 `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
 * 💾 `file` module to download, upload and delete files
 * 🗨 `talk` module to post messages in conversations
+* 👥 `user` module to maintain nextcloud users
+
+### Support
+
+
+| **host** | **category** |
+| --- | --- |
+| https://git.osuv.de/m/nextcloud_collection | origin |
+| https://gitlab.com/markuman/nextcloud_collection | pull mirror, merge-requests and Issues |
+| https://github.com/markuman/nextcloud_collection | push mirror, pull-requests and Issues |
 
 # Usage
 
@@ -21,7 +32,8 @@ https://galaxy.ansible.com/markuman/nextcloud
 
 ## Auth
 
-You must authenticate with an app token. (Settings -> Security -> "Create new app password")
+You can authenticate either with your user password or with an App-Token (_Settings -> Security -> "Create new app password_).  
+When you've setup MFA/2FA/TOTP, you must authenticate with an App-Token.
 
 The collection modules and plugins require the following parameter. Alternatively the parameter can also be set as an ENV variable.
 
@@ -86,10 +98,3 @@ CAUTION ⚠ removes files and folders - recursive!
     channel: 8fyrb4ec
 ```
 
-### SCM
-
-| **host** | **category** |
-| --- | --- |
-| https://git.osuv.de/m/nextcloud_collection | origin |
-| https://gitlab.com/markuman/nextcloud_collection | pull mirror |
-| https://github.com/markuman/nextcloud_collection | push mirror |
