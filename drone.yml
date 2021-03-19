@@ -19,7 +19,7 @@ steps:
       - apk --update add ansible py3-requests curl
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - ansible-playbook tests/drone.yml
+      - ansible-playbook tests/integration.yml
 
 services:
   - name: nextcloud21

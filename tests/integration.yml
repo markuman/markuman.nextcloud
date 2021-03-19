@@ -85,3 +85,12 @@
           assert:
             that:
               - out_state is not changed
+
+        - name: get nc users
+          markuman.nextcloud.user_info:
+          register: out
+
+        - name: verify change
+          assert:
+            that:
+              - out.users | count == 1

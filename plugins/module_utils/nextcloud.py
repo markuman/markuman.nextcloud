@@ -29,10 +29,15 @@ class NextcloudHandler:
         if self.TOKEN is None:
             raise AnsibleError('Unable to continue. No Nextcloud Token is given.')
 
+        self.headers = {
+            'Accept': 'application/json',
+            'OCS-APIRequest': 'true'
+        }
+
     def get(self, path):
         r = requests.get(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
-            auth=(self.USER, self.TOKEN), verify=self.ssl
+            auth=(self.USER, self.TOKEN), verify=self.ssl, headers=self.headers
         )
 
         if r.status_code == 200:
@@ -69,11 +74,6 @@ class NextcloudHandler:
             status_code_error(r.status_code)
 
     def talk(self, message, channel):
-        headers = {
-            'Accept': 'application/json',
-            'OCS-APIRequest': 'true'
-        }
-
         body = {
             'message': message,
             'replyTo': 0
@@ -84,7 +84,7 @@ class NextcloudHandler:
         r = requests.post(
             '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
             data=body, 
-            headers=headers,
+            headers=self.headers,
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )
