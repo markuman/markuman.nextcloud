@@ -98,3 +98,14 @@ CAUTION ⚠ removes files and folders - recursive!
     channel: 8fyrb4ec
 ```
 
+## user_info
+
+List all nextcloud users.
+
+```yml
+- name: get nc users
+  markuman.nextcloud.user_info:
+  register: out
+
+- debug: msg="{{ out.users }}"
+```
