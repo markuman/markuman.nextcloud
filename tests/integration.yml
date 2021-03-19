@@ -88,6 +88,7 @@
 
         - name: get nc users
           markuman.nextcloud.user_info:
+            ssl_mode: http
           register: out
 
         - name: verify change
