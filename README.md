@@ -82,7 +82,7 @@ CAUTION ⚠ removes files and folders - recursive!
 ```yml
 - name: send hello
   markuman.nextcloud.talk:
-    message: Ho Hi from Ansible.
+    msg: Ho Hi from Ansible.
     channel: 8fyrb4ec
 ```
 
