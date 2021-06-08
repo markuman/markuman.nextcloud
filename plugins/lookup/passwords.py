@@ -64,7 +64,7 @@ class LookupModule(LookupBase):
                 if r.status_code == 200:
                     for item in r.json():
                         if item['label'] == term:
-                            ret.append(item['password'])
+                            ret.append(item)
                 else:
                     raise AnsibleParserError()
             except AnsibleParserError:
