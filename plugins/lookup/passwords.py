@@ -4,7 +4,7 @@ __metaclass__ = type
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.lookup import LookupBase
 
-from ansible_collections.markuman.nextcloud.plugins.module_utils.auth import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 
 try:
     import requests
