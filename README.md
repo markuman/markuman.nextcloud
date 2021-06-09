@@ -43,6 +43,13 @@ The collection modules and plugins require the following parameter. Alternativel
 | `user` | `NEXTCLOUD_USER` |
 | `api_token` | `NEXTCLOUD_TOKEN` |
 
+## ssl_mode
+
+`ssl_mode` parameter, default value (`https`).  
+* ability to use http:// for integration tests
+* ability to skip ssl verification
+* Possible values `https`, `http`, `skip`
+
 ## lookup passwords
 
 ```yml
