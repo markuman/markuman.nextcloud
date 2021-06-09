@@ -30,7 +30,7 @@ options:
       - Can also be set as ENV variable.
     required: false
     type: str
-  message:
+  msg:
     description:
       - Message that will be send.
     required: true
@@ -54,7 +54,7 @@ options:
 EXAMPLES = '''
     - name: send hello
       markuman.nextcloud.talk:
-        message: Ho Hi!
+        msg: Ho Hi!
         channel: someid
 '''
 
@@ -66,7 +66,7 @@ import json
 def main():
     module = AnsibleModule(
         argument_spec = dict(
-            message = dict(required=True, type='str'),
+            msg = dict(required=True, type='str'),
             channel = dict(required=True, type='str'),
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
@@ -77,7 +77,7 @@ def main():
 
     nc = NextcloudHandler(module.params)
 
-    message = module.params.get("message")
+    message = module.params.get("msg")
     channel = module.params.get("channel")
 
     headers = {
