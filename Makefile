@@ -14,7 +14,17 @@ install: ## install collection localy
 remove: ## remove collection localy
 	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/
 
+syntax: ## test compile
+	python -m py_compile plugins/lookup/passwords.py
+	python -m py_compile plugins/module_utils/nextcloud.py
+	python -m py_compile plugins/modules/*.py
+
+whisper: ## verify files
+	whisper-ci --exit-code 1
+
 round: ## remove, build install
+	$(MAKE) syntax
+	$(MAKE) whisper
 	$(MAKE) remove
 	$(MAKE) build
 	$(MAKE) install
