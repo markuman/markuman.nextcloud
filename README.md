@@ -52,10 +52,13 @@ The collection modules and plugins require the following parameter. Alternativel
 
 ## lookup passwords
 
+When `details=False`, only the password is returned.  
+When `details=True`, the entire object is returned.
+
 ```yml
 - name: Retrieve Password with label "Stackoverflow"
   debug:
-    var: lookup('markuman.nextcloud.passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token')
+    var: lookup('markuman.nextcloud.passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token', details=False)
 ```
 
 ## file module

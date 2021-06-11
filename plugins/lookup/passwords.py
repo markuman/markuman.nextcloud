@@ -48,7 +48,7 @@ notes:
 EXAMPLES = """
 - name: Retrieve Password with label "Stackoverflow"
   debug:
-    var: lookup('nextcloud_passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token')
+    var: lookup('nextcloud_passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token', details=False)
 """
 
 class LookupModule(LookupBase):
@@ -58,13 +58,18 @@ class LookupModule(LookupBase):
         nc = NextcloudHandler(kwargs)
         r = nc.get("index.php/apps/passwords/api/1.0/password/list")
 
+        details = kwargs.get('details') or False
+
         ret = []
         for term in terms:
             try:
                 if r.status_code == 200:
                     for item in r.json():
                         if item['label'] == term:
-                            ret.append(item['password'])
+                            if details:
+                                ret.append(item)
+                            else:
+                                ret.append(item['password'])
                 else:
                     raise AnsibleParserError()
             except AnsibleParserError:
