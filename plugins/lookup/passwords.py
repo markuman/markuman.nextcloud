@@ -57,4 +57,4 @@ class LookupModule(LookupBase):
 
         nc = NextcloudHandler(kwargs)
         for term in terms:
-            return nc.list_passwords(term)
+            return nc.get_password(term)

@@ -32,7 +32,7 @@ def main():
     module.params["details"] = True
     nc = NextcloudHandler(module.params)
 
-    retval = nc.list_passwords(module.params.get('name'))
+    retval = nc.get_password(module.params.get('name'))
     module.exit_json(**retval[0])
     
 

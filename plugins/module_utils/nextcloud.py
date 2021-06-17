@@ -96,22 +96,22 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
-    def list_passwords(self, term):
+    def list_passwords(self):
         r = self.get("index.php/apps/passwords/api/1.0/password/list")
-        
-        ret = []
-        try:
-            if r.status_code == 200:
-                for item in r.json():
-                    if item['label'] == term:
-                        if self.details:
-                            ret.append(item)
-                        else:
-                            ret.append(item['password'])
-            else:
-                status_code_error(r.status_code)
-        except AnsibleParserError:
+        if r.status_code == 200:
+            return r.json()     
+        else:
             status_code_error(r.status_code)
+
+    def get_password(self, name):
+        r = self.list_passwords()
+        ret = []
+        for item in r:
+            if item['label'] == name:
+                if self.details:
+                    ret.append(item)
+                else:
+                    ret.append(item['password'])
         return ret
 
 
