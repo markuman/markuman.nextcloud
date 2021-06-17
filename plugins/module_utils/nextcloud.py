@@ -17,6 +17,8 @@ class NextcloudHandler:
         elif kwargs.get('ssl_mode') == 'skip':
             self.ssl = False
 
+        self.details = kwargs.get('details') or False
+
         self.HOST = kwargs.get('host') or os.environ.get('NEXTCLOUD_HOST')
         if self.HOST is None:
             raise AnsibleError('Unable to continue. No Nextcloud Host is given.')
@@ -93,6 +95,24 @@ class NextcloudHandler:
             return r, True
         else:
             status_code_error(r.status_code)
+
+    def list_passwords(self, term):
+        r = self.get("index.php/apps/passwords/api/1.0/password/list")
+        
+        ret = []
+        try:
+            if r.status_code == 200:
+                for item in r.json():
+                    if item['label'] == term:
+                        if self.details:
+                            ret.append(item)
+                        else:
+                            ret.append(item['password'])
+            else:
+                status_code_error(r.status_code)
+        except AnsibleParserError:
+            status_code_error(r.status_code)
+        return ret
 
 
     def user(self):
