@@ -108,6 +108,20 @@ CAUTION ⚠ removes files and folders - recursive!
     channel: 8fyrb4ec
 ```
 
+## password module
+
+| parameter | notes |
+| --- | --- |
+| `password` | when no password it given, ansible will request an auto-generated password from the nextcloud server |
+| `name` | the name of the password |
+| `username` | username that belongs to the password |
+| `label` | label of the password |
+| `url` | url of the password |
+| `notes` | notes to the password |
+| `favorite` | whether the password should be marked as favourite or not |
+| `folder` | if the password should be located in a subfolder |
+| `state` | `present` or `absent` |
+
 ## user_info
 
 List all nextcloud users.
