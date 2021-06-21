@@ -26,14 +26,18 @@ def main():
             host = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
             ssl_mode = dict(required=False, type='str', default='https'),
-            name = dict(required=True, type='str')
+            name = dict(required=False, type='str')
         )
     )
     module.params["details"] = True
     nc = NextcloudHandler(module.params)
 
-    retval = nc.get_password(module.params.get('name'))
-    module.exit_json(**retval[0])
+    if module.params.get('name'):
+        retval = nc.get_password(module.params.get('name'))
+    else:
+        retval = nc.list_passwords()
+
+    module.exit_json(password=retval)
     
 
 if __name__ == '__main__':

@@ -117,7 +117,7 @@ class NextcloudHandler:
     def fetch_generated_password(self):
         r = self.get('index.php/apps/passwords/api/1.0/service/password')
         if r.status_code == 200:
-            return r.json().get('password')
+            return [r.json().get('password')]
         else:
             status_code_error(r.status_code)
 
