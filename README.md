@@ -8,10 +8,12 @@ No ssh required.
 
 [![Build Status](https://drone.osuv.de/api/badges/m/nextcloud_collection/status.svg)](https://drone.osuv.de/m/nextcloud_collection)
 
-* 🔑 `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
 * 💾 `file` module - download, upload and delete files
 * 🗨 `talk` module - post messages in conversations
 * 👥 `user` module - maintain nextcloud users
+* 🔑 passwords
+  * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
+  * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
 
 ### Support
 
