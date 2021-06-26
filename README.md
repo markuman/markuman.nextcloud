@@ -108,6 +108,23 @@ CAUTION ⚠ removes files and folders - recursive!
     channel: 8fyrb4ec
 ```
 
+## password_info module
+
+| parameter | notes |
+| --- | --- |
+| `name` | the name of the password |
+
+```yml
+- name: look for one password
+  markuman.nextcloud.password_info:
+    name: ansible-test-01
+  register: out
+
+- name: fetch all passwords
+  markuman.nextcloud.password_info:
+  register: out
+```
+
 ## password module
 
 | parameter | notes |
@@ -115,12 +132,27 @@ CAUTION ⚠ removes files and folders - recursive!
 | `password` | when no password it given, ansible will request an auto-generated password from the nextcloud server |
 | `name` | the name of the password |
 | `username` | username that belongs to the password |
-| `label` | label of the password |
 | `url` | url of the password |
 | `notes` | notes to the password |
 | `favorite` | whether the password should be marked as favourite or not |
-| `folder` | if the password should be located in a subfolder |
 | `state` | `present` or `absent` |
+
+
+```yml
+- name: sample create
+  markuman.nextcloud.password:
+    name: ansible-test-05
+    password: something
+    username: markus
+    url: https://nureintest.de
+    notes: made with ansible
+
+- name: >
+    when no password is requestes
+    nextcloud password apps will auto-generate it
+  markuman.nextcloud.password:
+    name: some super password
+```
 
 ## user_info
 

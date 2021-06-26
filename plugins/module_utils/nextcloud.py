@@ -122,5 +122,48 @@ class NextcloudHandler:
             status_code_error(r.status_code)
 
 
+    def create_password(self, post_obj):
+        r = requests.post(
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/create'.format(HTTP=self.HTTP, HOST=self.HOST), 
+            data=post_obj, 
+            headers=self.headers,
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
+        )
+
+        if r.status_code == 201:
+            return r.json()
+        else:
+            status_code_error(r.status_code)
+
+
+    def delete_password(self, post_obj):
+        r = requests.delete(
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/delete'.format(HTTP=self.HTTP, HOST=self.HOST), 
+            data=post_obj, 
+            headers=self.headers,
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
+        )
+
+        if r.status_code == 200:
+            return r.json()
+        else:
+            status_code_error(r.status_code)
+
+    def update_password(self, post_obj):
+        r = requests.patch(
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/update'.format(HTTP=self.HTTP, HOST=self.HOST), 
+            data=post_obj, 
+            headers=self.headers,
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
+        )
+
+        if r.status_code == 200:
+            return r.json()
+        else:
+            status_code_error(r.status_code)
+
     def user(self):
         return self.USER
