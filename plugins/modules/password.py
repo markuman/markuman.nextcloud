@@ -30,6 +30,7 @@ def main():
             name = dict(required=True, type='str'),
             state = dict(type='str', choices=['present', 'absent'], default='present'),
             password = dict(required=False, type='str'),
+            update_password = dict(type='str', choices=['always', 'on_create'], default='on_create'),
             username = dict(required=False, type='str'),
             url = dict(required=False, type='str'),
             notes = dict(required=False, type='str'),
@@ -47,6 +48,7 @@ def main():
     notes = module.params.get('notes')
     state = module.params.get('state')
     favorite = module.params.get('favorite')
+    update_password = module.params.get('update_password')
 
 
     retval = nc.get_password(name)
@@ -54,32 +56,35 @@ def main():
     if state == 'present':
       if len(retval) == 1:
           # update password
-          if password == retval[0].get('password'):
-              module.exit_json(changed = False, password=retval)
+            if password == retval[0].get('password'):
+                    module.exit_json(changed = False, password=retval)
 
-          else:
-              obj = {
+            elif update_password == 'always':
+                obj = {
                 'id': retval[0].get('id'),
                 'password': password,
                 'label': name
-              }
+                }
 
-              if notes:
-                  obj['notes'] = notes
+                if notes:
+                    obj['notes'] = notes
 
-              if username:
-                  obj['username'] = username
+                if username:
+                    obj['username'] = username
 
-              if url:
-                  obj['url'] = url
+                if url:
+                    obj['url'] = url
 
-              if favorite:
-                  obj['favorite'] = favorite
+                if favorite:
+                    obj['favorite'] = favorite
 
-              if not module.check_mode:
-                  retval = nc.update_password(obj)
+                if not module.check_mode:
+                    retval = nc.update_password(obj)
 
-              module.exit_json(changed = True, password=retval)
+                module.exit_json(changed = True, password=retval)
+
+            else:
+                module.exit_json(changed = False, password=retval)
 
       elif len(retval) == 0:
           # create password
