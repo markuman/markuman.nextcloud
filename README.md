@@ -139,6 +139,7 @@ CAUTION ⚠ removes files and folders - recursive!
 | `favorite` | whether the password should be marked as favourite or not |
 | `state` | `present` or `absent` |
 | `update_password` | When to update a password. `on_create` (default) will write the password only if the password record is created. `always` will also update the password if it's exist and the requested password differs from existing. |
+| `folder` | Name of the folder where the password must be saved (_works currently only on createion_) |
 
 
 
