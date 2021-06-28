@@ -103,6 +103,40 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
+    def list_passwords_folders(self):
+        r = self.get("index.php/apps/passwords/api/1.0/folder/list")
+        if r.status_code == 200:
+            return r.json()
+        else:
+            status_code_error(r.status_code)
+
+
+    def create_passwords_folder(self, name):
+        post_obj = {
+            'label': name
+        }
+
+        r = requests.post(
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/folder/create'.format(HTTP=self.HTTP, HOST=self.HOST),
+            data=post_obj,
+            headers=self.headers,
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
+        )
+
+        if r.status_code == 201:
+            return r.json()
+        else:
+            status_code_error(r.status_code)
+
+
+    def get_passwords_folder(self, name):
+        for folder in self.list_passwords_folders():
+            if folder.get('label') == name:
+                return folder.get('id')
+        return None
+
+
     def get_password(self, name):
         r = self.list_passwords()
         ret = []
