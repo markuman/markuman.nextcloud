@@ -29,7 +29,7 @@ def main():
             ssl_mode = dict(required=False, type='str', default='https'),
             name = dict(required=True, type='str'),
             state = dict(type='str', choices=['present', 'absent'], default='present'),
-            password = dict(required=False, type='str'),
+            password = dict(required=False, type='str', no_log=True),
             update_password = dict(type='str', choices=['always', 'on_create'], default='on_create'),
             username = dict(required=False, type='str'),
             url = dict(required=False, type='str'),
@@ -61,7 +61,7 @@ def main():
             if password == retval[0].get('password'):
                     module.exit_json(changed = False, password=retval)
 
-            elif update_password == 'always':
+            elif update_password == 'always' and password != retval[0].get('password'):
                 obj = {
                     'id': retval[0].get('id'),
                     'password': password,
