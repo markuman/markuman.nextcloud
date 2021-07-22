@@ -2,6 +2,7 @@ import os
 import requests
 import json
 from ansible.errors import AnsibleError
+from xml.dom import minidom
 
 
 def status_code_error(status):
@@ -49,6 +50,59 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
+    def propfind(self, path):
+        dios_mio = """<?xml version="1.0"?>
+<d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+<d:prop>
+        <d:getlastmodified />
+        <d:getetag />
+        <d:getcontenttype />
+        <d:resourcetype />
+        <oc:fileid />
+        <oc:permissions />
+        <oc:size />
+        <oc:checksums />
+        <oc:favorite />
+        <oc:owner-display-name />
+        <oc:share-types />
+</d:prop>
+</d:propfind>
+"""
+        s = requests.Session()
+        s.auth = (self.USER, self.TOKEN)
+        r = s.request(method='PROPFIND',
+            url='{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
+            headers={'Depth': '0'},
+            data=dios_mio,
+            verify=self.ssl
+        )
+
+        if r.status_code == 207:
+            dom = minidom.parseString(r.text.encode('ascii', 'xmlcharrefreplace'))
+            try:
+                return {
+                    'last_modified': dom.getElementsByTagName('d:getlastmodified')[0].firstChild.data,
+                    'content_type': dom.getElementsByTagName('d:getcontenttype')[0].firstChild.data,
+                    'file_id': dom.getElementsByTagName('oc:fileid')[0].firstChild.data,
+                    'size': dom.getElementsByTagName('oc:size')[0].firstChild.data,
+                    'favorite': dom.getElementsByTagName('oc:favorite')[0].firstChild.data,
+                    'owner': dom.getElementsByTagName('oc:owner-display-name')[0].firstChild.data,
+                    'href': dom.getElementsByTagName('d:href')[0].firstChild.data
+                }
+            except:
+                # I guess it's folder, because it has no content_type
+                return {
+                    'last_modified': dom.getElementsByTagName('d:getlastmodified')[0].firstChild.data,
+                    'content_type': 'inode/directory',
+                    'file_id': dom.getElementsByTagName('oc:fileid')[0].firstChild.data,
+                    'size': dom.getElementsByTagName('oc:size')[0].firstChild.data,
+                    'favorite': dom.getElementsByTagName('oc:favorite')[0].firstChild.data,
+                    'owner': dom.getElementsByTagName('oc:owner-display-name')[0].firstChild.data,
+                    'href': dom.getElementsByTagName('d:href')[0].firstChild.data
+                }
+
+        else:
+            status_code_error(r.status_code)
 
     def put(self, path, src):
         r = requests.put(
@@ -60,7 +114,6 @@ class NextcloudHandler:
             return r, True
         else:
             status_code_error(r.status_code)
-
 
     def delete(self, path):
         r = requests.delete(
