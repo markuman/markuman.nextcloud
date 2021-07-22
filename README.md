@@ -18,7 +18,7 @@ No ssh required.
 
 `ansible-galaxy collection install markuman.nextcloud`
 
-## Documentation
+## Documentation / Usage
 
 * [Wiki](https://git.osuv.de/m/nextcloud_collection/wiki/Home)
 
