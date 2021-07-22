@@ -1,0 +1,97 @@
+---
+- name: prepare nextcloud container
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: start nextcloud container
+      community.docker.docker_container:
+        name: nextcloud
+        image: "nextcloud:{{ nextcloud_version | default('21-apache') }}"
+        state: started
+        auto_remove: yes
+        recreate: yes
+        container_default_behavior: no_defaults
+        published_ports:
+          - 127.0.0.1:80:80
+          - 127.0.0.1:443:443
+        env:
+          SQLITE_DATABASE: sqlite
+          NEXTCLOUD_ADMIN_USER: ansible
+          NEXTCLOUD_ADMIN_PASSWORD: nextcloud_collection
+          NEXTCLOUD_TRUSTED_DOMAINS: localhost
+
+    - name: add nextcloud container temporary host group testing
+      add_host: hostname=nextcloud groups=testing
+
+    - name: bootstrap - update package cache
+      command: docker exec nextcloud apt update
+
+    - name: bootstrap - install python3
+      command: docker exec nextcloud apt install python3 ssl-cert -y
+
+
+- name: prepare apache with https
+  hosts: testing
+  connection: docker
+
+  vars:
+    ansible_user: root
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: Enable the Apache2 module ssl
+      community.general.apache2_module:
+        state: present
+        name: ssl
+
+    - name: enable default-ssl
+      command: a2ensite default-ssl
+
+    - name: reload apache2
+      service:
+        name: apache2
+        state: reloaded
+
+
+- name: prepare nextcloud itself
+  hosts: testing
+  connection: docker
+
+  vars:
+    ansible_user: www-data
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: install passwords app
+      command: php occ app:install passwords
+
+
+- name: run integration tests
+  hosts: localhost
+  connection: local
+
+  module_defaults:
+    markuman.nextcloud:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+
+  tasks:
+    - name: integration tests
+      block:
+        - name: file integration test
+          include_role:
+            name: file
+
+        - name: passwords integration test
+          include_role:
+            name: passwords
+
+      always:
+        - name: stop nextcloud container
+          community.docker.docker_container:
+            name: nextcloud
+            state: stopped
+            container_default_behavior: no_defaults

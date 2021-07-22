@@ -12,8 +12,8 @@ No ssh required.
 * 🗨 `talk` module - post messages in conversations
 * 👥 `user` module - maintain nextcloud users
 * 🔑 passwords
-  * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
-  * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
+    * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
+    * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
 
 ### Support
 

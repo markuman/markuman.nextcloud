@@ -19,12 +19,12 @@ syntax: ## test compile
 	python -m py_compile plugins/module_utils/nextcloud.py
 	python -m py_compile plugins/modules/*.py
 
-whisper: ## verify files
-	whisper-ci --exit-code 1
-
 round: ## remove, build install
 	$(MAKE) syntax
-	$(MAKE) whisper
 	$(MAKE) remove
 	$(MAKE) build
 	$(MAKE) install
+	$(MAKE) test
+
+test: ## run integration tests
+	$(MAKE) integration -C tests/integration/targets
