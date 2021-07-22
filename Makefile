@@ -19,12 +19,18 @@ syntax: ## test compile
 	python -m py_compile plugins/module_utils/nextcloud.py
 	python -m py_compile plugins/modules/*.py
 
-round: ## remove, build install
+fullround: ## everything
 	$(MAKE) syntax
 	$(MAKE) remove
 	$(MAKE) build
 	$(MAKE) install
 	$(MAKE) test
+
+round: ## short round
+	$(MAKE) syntax
+	$(MAKE) remove
+	$(MAKE) build
+	$(MAKE) install
 
 test: ## run integration tests
 	$(MAKE) integration -C tests/integration/targets
