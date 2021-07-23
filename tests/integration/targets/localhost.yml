@@ -75,6 +75,7 @@
     NEXTCLOUD_HOST: localhost
     NEXTCLOUD_USER: ansible
     NEXTCLOUD_TOKEN: nextcloud_collection
+    SSL_MODE: skip
 
   module_defaults:
     markuman.nextcloud.file:
