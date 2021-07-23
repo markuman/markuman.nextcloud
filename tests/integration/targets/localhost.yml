@@ -6,7 +6,7 @@
   tasks:
     - name: start nextcloud container
       community.docker.docker_container:
-        name: nextcloud
+        name: nextcloudintergrationtest
         image: "nextcloud:{{ nextcloud_version | default('21-apache') }}"
         state: started
         auto_remove: yes
@@ -22,7 +22,7 @@
           NEXTCLOUD_TRUSTED_DOMAINS: localhost
 
     - name: add nextcloud container temporary host group testing
-      add_host: hostname=nextcloud groups=testing
+      add_host: hostname=nextcloudintergrationtest groups=testing
 
     - name: bootstrap - update package cache
       command: docker exec nextcloud apt update
@@ -71,6 +71,11 @@
   hosts: localhost
   connection: local
 
+  vars:
+    NEXTCLOUD_HOST: localhost
+    NEXTCLOUD_USER: ansible
+    NEXTCLOUD_TOKEN: nextcloud_collection
+
   module_defaults:
     markuman.nextcloud.file:
       host: localhost
@@ -117,6 +122,6 @@
       always:
         - name: stop nextcloud container
           community.docker.docker_container:
-            name: nextcloud
+            name: nextcloudintergrationtest
             state: stopped
             container_default_behavior: no_defaults

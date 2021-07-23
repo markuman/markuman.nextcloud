@@ -3,7 +3,7 @@
 
     - name: test fetch generated password
       debug:
-        var: lookup('markuman.nextcloud.generate_password')
+        var: lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN)
 
     - name: check_mode create test password - random password set by server
       markuman.nextcloud.password:
@@ -28,7 +28,7 @@
 
     - name: Retrieve Password with label "ansible-test-01"
       debug:
-        var: lookup('markuman.nextcloud.passwords', 'ansible-test-01')
+        var: lookup('markuman.nextcloud.passwords', 'ansible-test-01', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN)
 
     - name: fetched created password
       markuman.nextcloud.password_info:
@@ -76,7 +76,7 @@
     - name: check_mode update test password
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password') }}"
+        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN) }}"
         update_password: always
       check_mode: yes
       register: out
@@ -100,7 +100,7 @@
     - name: update test password
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password') }}"
+        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN) }}"
         update_password: on_create
       register: out
 
@@ -112,7 +112,7 @@
     - name: update test password
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password') }}"
+        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN) }}"
         update_password: always
       register: out
 

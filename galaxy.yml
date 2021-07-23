@@ -11,3 +11,4 @@ tags:
     - nextcloud
     - collection
 repository: "https://git.osuv.de/m/nextcloud_collection"
+issues: https://github.com/markuman/nextcloud_collection/issues
