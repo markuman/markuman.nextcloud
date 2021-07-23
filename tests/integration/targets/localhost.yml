@@ -25,10 +25,10 @@
       add_host: hostname=nextcloudintergrationtest groups=testing
 
     - name: bootstrap - update package cache
-      command: docker exec nextcloud apt update
+      command: docker exec nextcloudintergrationtest apt update
 
     - name: bootstrap - install python3
-      command: docker exec nextcloud apt install python3 ssl-cert -y
+      command: docker exec nextcloudintergrationtest apt install python3 ssl-cert -y
 
 
 - name: prepare apache with https
