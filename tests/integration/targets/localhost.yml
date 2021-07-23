@@ -79,10 +79,10 @@
 
   module_defaults:
     markuman.nextcloud.file:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.file_info:
       host: localhost
       user: ansible

@@ -122,3 +122,58 @@
   assert:
     that:
       - out_state is not changed
+
+- name: don't delete recursively
+  markuman.nextcloud.file:
+    source: Photos
+    mode: delete
+  register: out_state
+
+- name: state must not be changed
+  assert:
+    that:
+      - out_state is not changed
+
+- name: file info folder
+  markuman.nextcloud.file_info:
+    source: Photos
+  register: out_state
+
+- name: it's a folder
+  assert:
+    that:
+      - "out_state.file_info.source.content_type == 'inode/directory'"
+
+- name: delete recursively
+  markuman.nextcloud.file:
+    source: Photos
+    mode: delete
+    delete_recursively: yes
+  register: out_state
+
+- name: delete resursively state must be changed
+  assert:
+    that:
+      - out_state is changed
+
+- name: immutable delete recursively
+  markuman.nextcloud.file:
+    source: Photos
+    mode: delete
+    delete_recursively: yes
+  register: out_state
+
+- name: delete resursively state must be changed
+  assert:
+    that:
+      - out_state is not changed
+
+- name: file info not existing
+  markuman.nextcloud.file_info:
+    source: Photos
+  register: out_state
+
+- name: not exist
+  assert:
+    that:
+      - "out_state.file_info.source == {}"

@@ -110,7 +110,7 @@ def main():
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
             overwrite = dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
             ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip']),
-            delete_recurively = dict(required=False, type='bool', default=False)
+            delete_recursively = dict(required=False, type='bool', default=False)
         ),
         supports_check_mode=True
     )
@@ -121,7 +121,7 @@ def main():
     source = module.params.get("source")
     destination = module.params.get("destination")
     overwrite = module.params.get("overwrite")
-    delete_recurively = module.params.get("delete_recurively")
+    delete_recursively = module.params.get("delete_recursively")
 
     message = "Undefined."
     change = False
@@ -175,7 +175,7 @@ def main():
         message = "File does not already exists."
         if facts != {}:
             if not module.check_mode:
-                if delete_recurively:
+                if delete_recursively:
                     r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
                     if facts.get('content_type') != 'inode/directory':
                         message = "File deleted."
@@ -184,6 +184,8 @@ def main():
                 elif facts.get('content_type') != 'inode/directory':
                     r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
                     message = "File deleted"
+                else:
+                    message = "Cannot delete folder without set delete_recursively to true."
             else:
                 message = "File not deleted due check_mode."
                 change = True
