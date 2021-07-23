@@ -91,7 +91,7 @@ def main():
     if r != {}:
         r['source'] = source
 
-    module.exit_json(changed = change, file_info={'source': r})
+    module.exit_json(changed = change, file_info=r)
     
 
 if __name__ == '__main__':

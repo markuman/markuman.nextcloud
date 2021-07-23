@@ -22,13 +22,6 @@
   markuman.nextcloud.file:
     mode: put
     src: /tmp/ansible.svg
-    dest: HIER.svg
-  register: out_state
-
-- name: upload file on nextcloud
-  markuman.nextcloud.file:
-    mode: put
-    src: /tmp/ansible.svg
     dest: ansible.svg
   register: out_state
 
@@ -139,10 +132,13 @@
     source: Photos
   register: out_state
 
+- debug:
+    var: out_state
+
 - name: it's a folder
   assert:
     that:
-      - "out_state.file_info.source.content_type == 'inode/directory'"
+      - "out_state.file_info.content_type == 'inode/directory'"
 
 - name: delete recursively
   markuman.nextcloud.file:
@@ -176,4 +172,4 @@
 - name: not exist
   assert:
     that:
-      - "out_state.file_info.source == {}"
+      - "out_state.file_info == {}"
