@@ -72,7 +72,32 @@
   connection: local
 
   module_defaults:
-    markuman.nextcloud:
+    markuman.nextcloud.file:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+    markuman.nextcloud.file_info:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+    markuman.nextcloud.password:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+    markuman.nextcloud.password_info:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+    markuman.nextcloud.passwords:
+      host: localhost
+      user: ansible
+      api_token: nextcloud_collection
+      ssl_mode: skip
+    markuman.nextcloud.generate_password:
       host: localhost
       user: ansible
       api_token: nextcloud_collection

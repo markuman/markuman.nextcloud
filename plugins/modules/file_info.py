@@ -87,7 +87,9 @@ def main():
   
     change = False
     r = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
-    r['source'] = source
+
+    if r != {}:
+        r['source'] = source
 
     module.exit_json(changed = change, file_info={'source': r})
     

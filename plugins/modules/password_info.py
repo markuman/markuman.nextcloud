@@ -26,6 +26,7 @@ def main():
             host = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
             ssl_mode = dict(required=False, type='str', default='https'),
+            user = dict(required=False, type='str'),
             name = dict(required=False, type='str')
         )
     )

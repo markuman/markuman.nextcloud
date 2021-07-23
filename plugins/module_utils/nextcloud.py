@@ -83,9 +83,9 @@ class NextcloudHandler:
                 return {
                     'last_modified': dom.getElementsByTagName('d:getlastmodified')[0].firstChild.data,
                     'content_type': dom.getElementsByTagName('d:getcontenttype')[0].firstChild.data,
-                    'file_id': dom.getElementsByTagName('oc:fileid')[0].firstChild.data,
-                    'size': dom.getElementsByTagName('oc:size')[0].firstChild.data,
-                    'favorite': dom.getElementsByTagName('oc:favorite')[0].firstChild.data,
+                    'file_id': int(dom.getElementsByTagName('oc:fileid')[0].firstChild.data),
+                    'size': int(dom.getElementsByTagName('oc:size')[0].firstChild.data),
+                    'favorite': int(dom.getElementsByTagName('oc:favorite')[0].firstChild.data),
                     'owner': dom.getElementsByTagName('oc:owner-display-name')[0].firstChild.data,
                     'href': dom.getElementsByTagName('d:href')[0].firstChild.data
                 }
@@ -100,6 +100,9 @@ class NextcloudHandler:
                     'owner': dom.getElementsByTagName('oc:owner-display-name')[0].firstChild.data,
                     'href': dom.getElementsByTagName('d:href')[0].firstChild.data
                 }
+
+        elif r.status_code == 404:
+            return {}
 
         else:
             status_code_error(r.status_code)

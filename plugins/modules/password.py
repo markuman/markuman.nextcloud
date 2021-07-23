@@ -26,6 +26,7 @@ def main():
         argument_spec = dict(
             host = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
+            user = dict(required=False, type='str'),
             ssl_mode = dict(required=False, type='str', default='https'),
             name = dict(required=True, type='str'),
             state = dict(type='str', choices=['present', 'absent'], default='present'),

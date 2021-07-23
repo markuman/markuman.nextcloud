@@ -5,6 +5,26 @@
     dest: /tmp/ansible.svg
 
 ########### test
+- name: check_mode upload file on nextcloud
+  markuman.nextcloud.file:
+    mode: put
+    src: /tmp/ansible.svg
+    dest: ansible.svg
+  register: out_state
+  check_mode: yes
+
+- name: check_mode state must be changed
+  assert:
+    that:
+      - out_state is changed
+
+- name: upload file on nextcloud
+  markuman.nextcloud.file:
+    mode: put
+    src: /tmp/ansible.svg
+    dest: HIER.svg
+  register: out_state
+
 - name: upload file on nextcloud
   markuman.nextcloud.file:
     mode: put
@@ -13,6 +33,45 @@
   register: out_state
 
 - name: state must be changed
+  assert:
+    that:
+      - out_state is changed
+
+- name: never overwrite upload file on nextcloud
+  markuman.nextcloud.file:
+    mode: put
+    src: /tmp/ansible.svg
+    dest: ansible.svg
+    overwrite: never
+  register: out_state
+
+- name: never state must not be changed
+  assert:
+    that:
+      - out_state is not changed
+
+- name: immutable upload file on nextcloud by size
+  markuman.nextcloud.file:
+    mode: put
+    src: /tmp/ansible.svg
+    dest: ansible.svg
+    overwrite: different_size
+  register: out_state
+
+- name: immutable state must not be changed
+  assert:
+    that:
+      - out_state is not changed
+
+- name: check_mode GET file from nextcloud
+  markuman.nextcloud.file:
+    mode: get
+    src: ansible.svg
+    dest: /tmp/tmp.svg
+  register: out_state
+  check_mode: yes
+
+- name: check_mode state must be changed
   assert:
     that:
       - out_state is changed
@@ -29,7 +88,7 @@
     that:
       - out_state is changed
 
-- name: OK fetch file from nextcloud
+- name: immutable OK fetch file from nextcloud
   markuman.nextcloud.file:
     mode: get
     src: ansible.svg

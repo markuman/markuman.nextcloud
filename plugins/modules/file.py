@@ -59,9 +59,10 @@ options:
     description:
       - Force overwrite locally on the filesystem
       - Used only with GET parameter.
-      - one of [always, never, different]. different depends on md5sum.
+      - one of [always, never, different, different_size].
+      - 'different' depends on md5sum an is made 'in memory' for remote files.
     default: 'always'
-    aliases: ['force']
+    aliases: ['force', 'overwritten']
     type: str
   ssl_mode:
     description:
@@ -94,6 +95,10 @@ def write_file(destination, content):
     with open(destination,'wb') as FILE:
         FILE.write(content)
 
+def create_remote_md5sum_in_memory(nc, remote_file):
+    r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=remote_file))
+    return hashlib.md5(r.content).hexdigest(), r.content
+
 def main():
     module = AnsibleModule(
         argument_spec = dict(
@@ -103,9 +108,11 @@ def main():
             host = dict(required=False, type='str'),
             user = dict(required=False, type='str'),
             api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            overwritten = dict(required=False, type='str', default='always', aliases=['force']),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
-        )
+            overwrite = dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
+            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip']),
+            delete_recurively = dict(required=False, type='bool', default=False)
+        ),
+        supports_check_mode=True
     )
 
     nc = NextcloudHandler(module.params)
@@ -113,22 +120,30 @@ def main():
     mode = module.params.get("mode")
     source = module.params.get("source")
     destination = module.params.get("destination")
-    overwritten = module.params.get("overwritten")
+    overwrite = module.params.get("overwrite")
+    delete_recurively = module.params.get("delete_recurively")
+
+    message = "Undefined."
+    change = False
 
     if mode == "get":
+        facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+
         if destination is None:
             raise AnsibleError('No destination is given')
 
-        change = False
-        r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
-        if overwritten == 'always':
-            change = True
-            write_file(destination, r.content)
+        if facts == {}:
+            message = "Requested file does not exist."
+        else:
+            r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+            if overwrite == 'always' or not os.path.isfile(destination):
+                change = True
+                message = "File not received because of check_mode."
+                if not module.check_mode:
+                    write_file(destination, r.content)
+                    message = "File received"
 
-        elif overwritten == 'different':
-            change = False
-            if os.path.isfile(destination):
-
+            elif overwrite == 'different':
                 # md5sum local file
                 local = hashlib.md5()
                 with open(destination, "rb") as FILE:
@@ -137,22 +152,67 @@ def main():
 
                 # md5sum remote file
                 remote = hashlib.md5(r.content)
-                
+                message = "md5sum of dest and src is equal."
                 if remote.hexdigest() != local.hexdigest():
                     change = True
-                    write_file(destination, r.content)
-            else:
-                write_file(destination, r.content)
+                    message = "md5sum of dest and src is not equal. But file was not written due check_mode."
+                    if not module.check_mode:
+                        write_file(destination, r.content)
+                        message = "File received. md5sum of dest and src was not equal."
 
-    elif mode == "delete":            
-        r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+            elif overwrite == 'different_size':
+                message = "size of dest and src is equal."
+                if os.path.getsize(destination) != facts.get('size'):
+                    message = "size of dest and src is equal. But file was not written due check_mode"
+                    change = True
+                    if not module.check_mode:
+                        write_file(destination, r.content)
+                        message = "File received. Size of dest and src aws not equal."
+
+
+    elif mode == "delete":
+        facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+        message = "File does not already exists."
+        if facts != {}:
+            if not module.check_mode:
+                if delete_recurively:
+                    r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+                    if facts.get('content_type') != 'inode/directory':
+                        message = "File deleted."
+                    else:
+                        message = "Folder deleted recurively."
+                elif facts.get('content_type') != 'inode/directory':
+                    r, change = nc.delete("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
+                    message = "File deleted"
+            else:
+                message = "File not deleted due check_mode."
+                change = True
 
     elif mode == "put":
-        r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
-                            source)
+        facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=destination))
+        if overwrite == 'always' or facts == {}:
+            if not module.check_mode:
+                r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
+                                    source)
+                message = "File uploaded."
+            else:
+                message = "File not uploaded due check_mode."
+                change = True
+
+        elif overwrite == 'different_size':
+            message = "File not uploaded because size of dest and src is equal."
+            if os.path.getsize(source) != facts.get('size'):
+                if not module.check_mode:
+                    r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
+                                source)
+                    message = "File was uploaded. Size of dest and src was not equal."
+                else:
+                    message = "File not uploaded due check_mode. Size of dest and src is not equal."
+                    change = True
 
 
-    module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source})
+
+    module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source}, message=message)
     
 
 if __name__ == '__main__':
