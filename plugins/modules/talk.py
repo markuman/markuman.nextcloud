@@ -60,19 +60,16 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import json
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
+        argument_spec = parameter_spects(dict(
             msg = dict(required=True, type='str'),
-            channel = dict(required=True, type='str'),
-            host = dict(required=False, type='str'),
-            user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
-        )
+            channel = dict(required=True, type='str')
+        ))
     )
 
     nc = NextcloudHandler(module.params)

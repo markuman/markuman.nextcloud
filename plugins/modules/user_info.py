@@ -20,16 +20,12 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            host = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            user = dict(required=False, type='str'),
-            ssl_mode = dict(required=False, type='str', default='https')
-        )
+        argument_spec = parameter_spects({})
     )
 
     nc = NextcloudHandler(module.params)

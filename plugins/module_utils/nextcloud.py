@@ -9,6 +9,17 @@ def status_code_error(status):
     raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
 
 
+def parameter_spects(spec_arguments):
+    argument_spec = dict(
+        host = dict(required=False, type='str'),
+        api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
+        user = dict(required=False, type='str'),
+        ssl_mode = dict(required=False, type='str', default='https')
+    )
+
+    return {**argument_spec, **spec_arguments}
+
+
 class NextcloudHandler:
     def __init__(self, kwargs):
         self.HTTP = 'https'

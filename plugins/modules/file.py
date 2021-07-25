@@ -88,6 +88,7 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import os.path
 import hashlib
 
@@ -101,19 +102,17 @@ def create_remote_md5sum_in_memory(nc, remote_file):
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            mode = dict(required=True, type='str'),
-            source = dict(required=True, type='str', aliases=['src']),
-            destination = dict(required=False, type='str', aliases=['dest']),
-            host = dict(required=False, type='str'),
-            user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            overwrite = dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip']),
-            delete_recursively = dict(required=False, type='bool', default=False)
-        ),
-        supports_check_mode=True
-    )
+        supports_check_mode=True,
+        argument_spec = parameter_spects(
+            dict(
+                mode = dict(required=True, type='str'),
+                source = dict(required=True, type='str', aliases=['src']),
+                destination = dict(required=False, type='str', aliases=['dest']),
+                overwrite = dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
+                delete_recursively = dict(required=False, type='bool', default=False)
+            ))
+        )
+
 
     nc = NextcloudHandler(module.params)
 

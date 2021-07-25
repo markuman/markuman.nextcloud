@@ -18,16 +18,14 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 from ansible.errors import AnsibleError
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            host = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            user = dict(required=False, type='str'),
-            ssl_mode = dict(required=False, type='str', default='https'),
+        supports_check_mode=True,
+        argument_spec = parameter_spects(dict(
             name = dict(required=True, type='str'),
             state = dict(type='str', choices=['present', 'absent'], default='present'),
             password = dict(required=False, type='str', no_log=True),
@@ -37,8 +35,7 @@ def main():
             notes = dict(required=False, type='str'),
             favorite = dict(required=False, type='bool', default=False),
             folder = dict(required=False, type='str')
-        ),
-        supports_check_mode=True
+        ))
     )
     module.params["details"] = True
     nc = NextcloudHandler(module.params)

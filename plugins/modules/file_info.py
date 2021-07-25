@@ -62,6 +62,7 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import *
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import os.path
 import hashlib
 
@@ -71,13 +72,9 @@ def write_file(destination, content):
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            source = dict(required=True, type='str', aliases=['src']),
-            host = dict(required=False, type='str'),
-            user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
-        )
+        argument_spec = parameter_spects(dict(
+            source = dict(required=True, type='str', aliases=['src'])
+        ))
     )
 
     nc = NextcloudHandler(module.params)
