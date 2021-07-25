@@ -84,34 +84,43 @@
       api_token: "{{ NEXTCLOUD_TOKEN }}"
       ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.file_info:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.password:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.password_info:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.passwords:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.generate_password:
-      host: localhost
-      user: ansible
-      api_token: nextcloud_collection
-      ssl_mode: skip
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.user_info:
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
 
   tasks:
     - name: integration tests
       block:
+        - name: file integration test
+          include_role:
+            name: user
+
         - name: file integration test
           include_role:
             name: file
