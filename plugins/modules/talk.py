@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 DOCUMENTATION = '''
 module: markuman.nextcloud.talk
 short_description: send nextcloud talk messages
@@ -44,7 +47,7 @@ options:
     description:
       - ability to use http:// for integration tests
       - ability to skip ssl verification
-      - Possible values `https` (default https), `http` (http), `skip` (https) 
+      - Possible values `https` (default https), `http` (http), `skip` (https)
     required: false
     type: str
     default: https
@@ -58,7 +61,7 @@ EXAMPLES = '''
         channel: someid
 '''
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import json
@@ -66,9 +69,9 @@ import json
 
 def main():
     module = AnsibleModule(
-        argument_spec = parameter_spects(dict(
-            msg = dict(required=True, type='str'),
-            channel = dict(required=True, type='str')
+        argument_spec=parameter_spects(dict(
+            msg=dict(required=True, type='str'),
+            channel=dict(required=True, type='str')
         ))
     )
 
@@ -89,8 +92,8 @@ def main():
 
     r, change = nc.talk(message, channel)
 
-    module.exit_json(changed = change, talk={'message': message, 'channel': channel})
-    
+    module.exit_json(changed=change, talk={'message': message, 'channel': channel})
+
 
 if __name__ == '__main__':
     main()

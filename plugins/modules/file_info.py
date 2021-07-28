@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 DOCUMENTATION = '''
 module: markuman.nextcloud.file_info
 short_description: info about files in nextcloud
@@ -47,7 +50,7 @@ options:
     description:
       - ability to use http:// for integration tests
       - ability to skip ssl verification
-      - Possible values `https` (default https), `http` (http), `skip` (https) 
+      - Possible values `https` (default https), `http` (http), `skip` (https)
     required: false
     type: str
     default: https
@@ -60,21 +63,23 @@ EXAMPLES = '''
         source: anythingeverything.jpg
 '''
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import os.path
 import hashlib
 
+
 def write_file(destination, content):
-    with open(destination,'wb') as FILE:
+    with open(destination, 'wb') as FILE:
         FILE.write(content)
+
 
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
-        argument_spec = parameter_spects(dict(
-            source = dict(required=True, type='str', aliases=['src'])
+        argument_spec=parameter_spects(dict(
+            source=dict(required=True, type='str', aliases=['src'])
         ))
     )
 
@@ -82,15 +87,14 @@ def main():
 
     source = module.params.get("source")
 
-  
     change = False
     r = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
 
     if r != {}:
         r['source'] = source
 
-    module.exit_json(changed = change, file_info=r)
-    
+    module.exit_json(changed=change, file_info=r)
+
 
 if __name__ == '__main__':
     main()

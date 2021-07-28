@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 DOCUMENTATION = '''
 module: markuman.nextcloud.password
 short_description: module to manage passwords
@@ -16,7 +19,7 @@ requirements:
 EXAMPLES = '''
 '''
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 from ansible.errors import AnsibleError
@@ -25,16 +28,16 @@ from ansible.errors import AnsibleError
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
-        argument_spec = parameter_spects(dict(
-            name = dict(required=True, type='str'),
-            state = dict(type='str', choices=['present', 'absent'], default='present'),
-            password = dict(required=False, type='str', no_log=True),
-            update_password = dict(type='str', choices=['always', 'on_create'], default='on_create'),
-            username = dict(required=False, type='str'),
-            url = dict(required=False, type='str'),
-            notes = dict(required=False, type='str'),
-            favorite = dict(required=False, type='bool', default=False),
-            folder = dict(required=False, type='str')
+        argument_spec=parameter_spects(dict(
+            name=dict(required=True, type='str'),
+            state=dict(type='str', choices=['present', 'absent'], default='present'),
+            password=dict(required=False, type='str', no_log=True),
+            update_password=dict(type='str', choices=['always', 'on_create'], default='on_create'),
+            username=dict(required=False, type='str'),
+            url=dict(required=False, type='str'),
+            notes=dict(required=False, type='str'),
+            favorite=dict(required=False, type='bool', default=False),
+            folder=dict(required=False, type='str')
         ))
     )
     module.params["details"] = True
@@ -50,14 +53,13 @@ def main():
     update_password = module.params.get('update_password')
     folder = module.params.get('folder')
 
-
     retval = nc.get_password(name)
 
     if state == 'present':
         if len(retval) == 1:
             # update password
             if password == retval[0].get('password'):
-                    module.exit_json(changed = False, password=retval)
+                module.exit_json(changed=False, password=retval)
 
             elif update_password == 'always' and password != retval[0].get('password'):
                 obj = {
@@ -81,10 +83,10 @@ def main():
                 if not module.check_mode:
                     retval = nc.update_password(obj)
 
-                module.exit_json(changed = True, password=retval)
+                module.exit_json(changed=True, password=retval)
 
             else:
-                module.exit_json(changed = False, password=retval)
+                module.exit_json(changed=False, password=retval)
 
         elif len(retval) == 0:
             # create password
@@ -115,8 +117,7 @@ def main():
             if not module.check_mode:
                 retval = nc.create_password(obj)
 
-            module.exit_json(changed = True, password=retval)
-
+            module.exit_json(changed=True, password=retval)
 
         else:
             raise AnsibleError('More than one password identifies. Cannot continue')
@@ -125,17 +126,16 @@ def main():
         if len(retval) == 1:
             if not module.check_mode:
                 obj = {
-                'id': retval[0].get('id')
-              }
+                    'id': retval[0].get('id')
+                }
                 retval = nc.delete_password(obj)
-                module.exit_json(changed = True, password=retval)
-            module.exit_json(changed = True, password={})
+                module.exit_json(changed=True, password=retval)
+            module.exit_json(changed=True, password={})
         elif len(retval) == 0:
-            module.exit_json(changed = False, password={})
+            module.exit_json(changed=False, password={})
         else:
             raise AnsibleError('More than one password identifies. Cannot continue')
 
-      
 
 if __name__ == '__main__':
     main()
