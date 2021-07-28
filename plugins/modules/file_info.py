@@ -72,6 +72,7 @@ def write_file(destination, content):
 
 def main():
     module = AnsibleModule(
+        supports_check_mode=True,
         argument_spec = parameter_spects(dict(
             source = dict(required=True, type='str', aliases=['src'])
         ))

@@ -25,6 +25,7 @@ from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud impor
 
 def main():
     module = AnsibleModule(
+        supports_check_mode=True,
         argument_spec = parameter_spects({})
     )
 
