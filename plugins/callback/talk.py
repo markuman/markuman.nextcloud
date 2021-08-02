@@ -33,15 +33,14 @@ class CallbackModule(CallbackBase):
             'Accept': 'application/json',
             'OCS-APIRequest': 'true'
         }
-
+        
     def log(self, result, category):
         data = result._result
-        playbook = self.playbook
         taskname = result._task.name
         task_action = result._task.action
         changed = data.get('changed')
 
-        message = f"***********************************\nPlaybook: {playbook}\n\tTASK[{taskname}]: {task_action} - {category}\n\tchanged: {changed}"
+        message = f"TASK[{taskname}]: {task_action} - {category}\n\tchanged: {changed}"
 
         r, change = self.nc.talk(message, self.channel)
 
@@ -62,6 +61,9 @@ class CallbackModule(CallbackBase):
 
     def v2_playbook_on_start(self, playbook):
         self.playbook = playbook._file_name
+        playbook = self.playbook
+        message = f"________________________________________\nPlaybook: {playbook}"
+        r, change = self.nc.talk(message, self.channel)
 
     def v2_playbook_on_import_for_host(self, result, imported_file):
         self.log(result, 'IMPORTED', imported_file)
