@@ -12,7 +12,7 @@ install: ## install collection localy
 	ansible-galaxy collection install markuman*
 
 remove: ## remove collection localy
-	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/
+	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/nextcloud
 
 syntax: ## test compile
 	python -m py_compile plugins/lookup/*.py
