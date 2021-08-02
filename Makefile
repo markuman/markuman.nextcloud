@@ -15,9 +15,10 @@ remove: ## remove collection localy
 	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/
 
 syntax: ## test compile
-	python -m py_compile plugins/lookup/passwords.py
+	python -m py_compile plugins/lookup/*.py
 	python -m py_compile plugins/module_utils/nextcloud.py
 	python -m py_compile plugins/modules/*.py
+	python -m py_compile plugins/callback/*.py
 
 fullround: ## everything
 	$(MAKE) syntax
