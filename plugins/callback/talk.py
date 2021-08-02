@@ -25,9 +25,6 @@ class CallbackModule(CallbackBase):
     CALLBACK_NAME = 'markuman.nextcloud.talk'
     CALLBACK_NEEDS_WHITELIST = False
 
-    TIME_FORMAT = "%b %d %Y %H:%M:%S"
-    MSG_FORMAT = "%(now)s - %(playbook)s - %(task_name)s - %(task_action)s - %(category)s - %(data)s\n\n"
-
     def __init__(self):
 
         self.nc = NextcloudHandler({})
