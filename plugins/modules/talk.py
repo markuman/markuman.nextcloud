@@ -85,11 +85,6 @@ def main():
         'OCS-APIRequest': 'true'
     }
 
-    body = {
-        'message': message,
-        'replyTo': 0
-    }
-
     r, change = nc.talk(message, channel)
 
     module.exit_json(changed=change, talk={'message': message, 'channel': channel})
