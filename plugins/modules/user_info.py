@@ -1,19 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = '''
-module: markuman.nextcloud.user_info
+module: user_info
 short_description: administrate nextcloud users
 description:
   - Add, remove, enable or disable users
 version_added: "4.0.0"
 author:
-  - "Markus Bergholz"
-requirements:
-  - requests python module
+  - "Markus Bergholz (@markuman)"
+extends_documentation_fragment:
+  - markuman.nextcloud.nextcloud.connectivity
+notes:
+  - Supports C(check_mode).
 '''
 
 EXAMPLES = '''

@@ -1,19 +1,29 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = '''
-module: markuman.nextcloud.password_info
+module: password_info
 short_description: module to fetch password details
 description:
   - Add, remove, enable or disable users
 version_added: "7.0.0"
 author:
-  - "Markus Bergholz"
-requirements:
-  - requests python module
+  - "Markus Bergholz (@markuman)"
+options:
+  name:
+    description:
+      - Name represents the label of the password.
+    required: false
+    type: str
+extends_documentation_fragment:
+  - markuman.nextcloud.nextcloud.connectivity
+notes:
+  - Supports C(check_mode).
+
 '''
 
 EXAMPLES = '''

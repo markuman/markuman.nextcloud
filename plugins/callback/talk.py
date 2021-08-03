@@ -33,7 +33,7 @@ class CallbackModule(CallbackBase):
             'Accept': 'application/json',
             'OCS-APIRequest': 'true'
         }
-        
+
     def log(self, result, category):
         data = result._result
         taskname = result._task.name

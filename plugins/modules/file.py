@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = '''
-module: markuman.nextcloud.file
+---
+module: file
 short_description: get/put/delete files from/to/on nextcloud
 description:
   - Download files from Nextcloud.
@@ -13,46 +15,30 @@ description:
   - Delete files on Nextcloud.
 version_added: "2.0.0"
 author:
-  - "Markus Bergholz"
-requirements:
-  - requests python module
+  - "Markus Bergholz (@markuman)"
 options:
-  api_token:
-    description:
-      - Nextcloud App Password.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-    aliases: ['access_token']
-  user:
-    description:
-      - Nextcloud user who (will) owns the file.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-  host:
-    description:
-      - Nextcloud tld host.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
   mode:
     description:
-      - Weather the file should be downloaded (get), uploaded (put) or deleted (delete).
+      - Weather the file should be
+        downloaded (get), uploaded (put) or deleted (delete).
     required: true
     type: str
   source:
     description:
-      - When the mode is get or delete, source describes the file location on nextcloud.
-      - When the mode is put, source describes the origin file location which will be uploaded to nextcloud.
+      - When the mode is get or delete, source describes
+        the file location on nextcloud.
+      - When the mode is put, source describes the origin file
+        location which will be uploaded to nextcloud.
     required: true
     aliases:
       - src
     type: str
   destination:
     description:
-      - When the mode is get, destination will the location of the downloaded file.
-      - When the mode is put, destination describes the file location on nextcloud.
+      - When the mode is get, destination will
+        the location of the downloaded file.
+      - When the mode is put, destination describes
+        the file location on nextcloud.
       - When the mode is delete, destination is not required.
     required: false
     aliases:
@@ -63,19 +49,23 @@ options:
       - Force overwrite locally on the filesystem
       - Used only with GET parameter.
       - one of [always, never, different, different_size].
-      - 'different' depends on md5sum an is made 'in memory' for remote files.
+      - C(different) depends on md5sum an is made C(in memory) for remote files.
     default: 'always'
     aliases: ['force', 'overwritten']
     type: str
-  ssl_mode:
+  delete_recursively:
     description:
-      - ability to use http:// for integration tests
-      - ability to skip ssl verification
-      - Possible values `https` (default https), `http` (http), `skip` (https)
+      - Whether a target is deleted recursively.
+      - Necessary for folders.
     required: false
-    type: str
-    default: https
-    version_added: 3.0.3
+    type: bool
+    default: false
+    version_added: 8.0.0
+extends_documentation_fragment:
+  - markuman.nextcloud.nextcloud.connectivity
+notes:
+  - Supports C(check_mode).
+
 '''
 
 EXAMPLES = '''
