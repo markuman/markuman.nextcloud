@@ -1,21 +1,66 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 import os
-import requests
 import json
+import traceback
 from ansible.errors import AnsibleError
 from xml.dom import minidom
+from ansible.module_utils.basic import missing_required_lib
+
+try:
+    import requests
+except ImportError:
+    HAS_REQUESTS_LIB = False
+    IMPORT_ERROR = traceback.format_exc()
+else:
+    HAS_REQUESTS_LIB = True
+
+
+dios_mio = """<?xml version="1.0"?>
+<d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+<d:prop>
+        <d:getlastmodified />
+        <d:getetag />
+        <d:getcontenttype />
+        <d:resourcetype />
+        <oc:fileid />
+        <oc:permissions />
+        <oc:size />
+        <oc:checksums />
+        <oc:favorite />
+        <oc:owner-display-name />
+        <oc:share-types />
+</d:prop>
+</d:propfind>
+"""
 
 
 def status_code_error(status):
-    raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC = status))
+    raise AnsibleError('Nextcloud returned with status code {SC}'.format(SC=status))
+
+
+def parameter_spects(spec_arguments):
+    argument_spec = dict(
+        host=dict(required=False, type='str'),
+        api_token=dict(required=False, type='str', no_log=True, aliases=['access_token']),
+        user=dict(required=False, type='str'),
+        ssl_mode=dict(required=False, type='str', default='https')
+    )
+
+    return {**argument_spec, **spec_arguments}
 
 
 class NextcloudHandler:
-    def __init__(self, kwargs):
+    def __init__(self, kwargs={}):
         self.HTTP = 'https'
         self.ssl = True
         if kwargs.get('ssl_mode') == 'http':
             self.HTTP = 'http'
         elif kwargs.get('ssl_mode') == 'skip':
+            self.ssl = False
+        elif os.environ.get('NEXTCLOUD_SSL_MODE') == 'http':
+            self.HTTP = 'http'
+        elif os.environ.get('NEXTCLOUD_SSL_MODE') == 'skip':
             self.ssl = False
 
         self.details = kwargs.get('details') or False
@@ -51,26 +96,10 @@ class NextcloudHandler:
             status_code_error(r.status_code)
 
     def propfind(self, path):
-        dios_mio = """<?xml version="1.0"?>
-<d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
-<d:prop>
-        <d:getlastmodified />
-        <d:getetag />
-        <d:getcontenttype />
-        <d:resourcetype />
-        <oc:fileid />
-        <oc:permissions />
-        <oc:size />
-        <oc:checksums />
-        <oc:favorite />
-        <oc:owner-display-name />
-        <oc:share-types />
-</d:prop>
-</d:propfind>
-"""
         s = requests.Session()
         s.auth = (self.USER, self.TOKEN)
-        r = s.request(method='PROPFIND',
+        r = s.request(
+            method='PROPFIND',
             url='{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
             headers={'Depth': '0'},
             data=dios_mio,
@@ -109,10 +138,10 @@ class NextcloudHandler:
 
     def put(self, path, src):
         r = requests.put(
-            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path), 
+            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
             data=open(src, 'rb'), auth=(self.USER, self.TOKEN), verify=self.ssl
         )
-        
+
         if r.status_code in [200, 201, 204]:
             return r, True
         else:
@@ -140,8 +169,8 @@ class NextcloudHandler:
         spreed_v1_path = "ocs/v2.php/apps/spreed/api/v1/chat"
 
         r = requests.post(
-            '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel), 
-            data=body, 
+            '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel),
+            data=body,
             headers=self.headers,
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
@@ -155,7 +184,7 @@ class NextcloudHandler:
     def list_passwords(self):
         r = self.get("index.php/apps/passwords/api/1.0/password/list")
         if r.status_code == 200:
-            return r.json()     
+            return r.json()
         else:
             status_code_error(r.status_code)
 
@@ -165,7 +194,6 @@ class NextcloudHandler:
             return r.json()
         else:
             status_code_error(r.status_code)
-
 
     def create_passwords_folder(self, name):
         post_obj = {
@@ -185,13 +213,11 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
-
     def get_passwords_folder(self, name):
         for folder in self.list_passwords_folders():
             if folder.get('label') == name:
                 return folder.get('id')
         return None
-
 
     def get_password(self, name):
         r = self.list_passwords()
@@ -211,11 +237,10 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
-
     def create_password(self, post_obj):
         r = requests.post(
-            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/create'.format(HTTP=self.HTTP, HOST=self.HOST), 
-            data=post_obj, 
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/create'.format(HTTP=self.HTTP, HOST=self.HOST),
+            data=post_obj,
             headers=self.headers,
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
@@ -226,11 +251,10 @@ class NextcloudHandler:
         else:
             status_code_error(r.status_code)
 
-
     def delete_password(self, post_obj):
         r = requests.delete(
-            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/delete'.format(HTTP=self.HTTP, HOST=self.HOST), 
-            data=post_obj, 
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/delete'.format(HTTP=self.HTTP, HOST=self.HOST),
+            data=post_obj,
             headers=self.headers,
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
@@ -243,8 +267,8 @@ class NextcloudHandler:
 
     def update_password(self, post_obj):
         r = requests.patch(
-            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/update'.format(HTTP=self.HTTP, HOST=self.HOST), 
-            data=post_obj, 
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/update'.format(HTTP=self.HTTP, HOST=self.HOST),
+            data=post_obj,
             headers=self.headers,
             auth=(self.USER, self.TOKEN),
             verify=self.ssl

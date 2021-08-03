@@ -6,3 +6,14 @@
   assert:
     that:
       - out.users |count == 1
+
+- name: get user details from admin user
+  markuman.nextcloud.user_info:
+      username: ansible
+  register: out
+
+- name: verify admin user
+  assert:
+    that:
+      - "'admin' in out.user_data.groups"
+      - out.user_data.quota.quota == -3

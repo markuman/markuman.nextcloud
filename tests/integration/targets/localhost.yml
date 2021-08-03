@@ -113,10 +113,19 @@
       user: "{{ NEXTCLOUD_USER }}"
       api_token: "{{ NEXTCLOUD_TOKEN }}"
       ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.info:
+      host: "{{ NEXTCLOUD_HOST }}"
+      user: "{{ NEXTCLOUD_USER }}"
+      api_token: "{{ NEXTCLOUD_TOKEN }}"
+      ssl_mode: "{{ SSL_MODE }}"
 
   tasks:
     - name: integration tests
       block:
+        - name: file integration test
+          include_role:
+            name: info
+
         - name: file integration test
           include_role:
             name: user

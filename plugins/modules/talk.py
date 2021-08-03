@@ -1,35 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 
 DOCUMENTATION = '''
-module: markuman.nextcloud.talk
+---
+module: talk
 short_description: send nextcloud talk messages
 description:
   - send messages with nextcloud talk.
 version_added: "3.0.0"
 author:
-  - "Markus Bergholz"
-requirements:
-  - requests python module
+  - "Markus Bergholz (@markuman)"
 options:
-  api_token:
-    description:
-      - Nextcloud App Password.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-  user:
-    description:
-      - Nextcloud user who (will) owns the file.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-  host:
-    description:
-      - Nextcloud tld host.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
   msg:
     description:
       - Message that will be send.
@@ -40,15 +25,10 @@ options:
       - ID of the Nextcloud Talk channel.
     required: true
     type: str
-  ssl_mode:
-    description:
-      - ability to use http:// for integration tests
-      - ability to skip ssl verification
-      - Possible values `https` (default https), `http` (http), `skip` (https) 
-    required: false
-    type: str
-    default: https
-    version_added: 3.0.3
+extends_documentation_fragment:
+  - markuman.nextcloud.nextcloud.connectivity
+notes:
+  - Supports C(check_mode).
 '''
 
 EXAMPLES = '''
@@ -58,21 +38,18 @@ EXAMPLES = '''
         channel: someid
 '''
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import json
 
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            msg = dict(required=True, type='str'),
-            channel = dict(required=True, type='str'),
-            host = dict(required=False, type='str'),
-            user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip'])
-        )
+        argument_spec=parameter_spects(dict(
+            msg=dict(required=True, type='str'),
+            channel=dict(required=True, type='str')
+        ))
     )
 
     nc = NextcloudHandler(module.params)
@@ -85,15 +62,10 @@ def main():
         'OCS-APIRequest': 'true'
     }
 
-    body = {
-        'message': message,
-        'replyTo': 0
-    }
-
     r, change = nc.talk(message, channel)
 
-    module.exit_json(changed = change, talk={'message': message, 'channel': channel})
-    
+    module.exit_json(changed=change, talk={'message': message, 'channel': channel})
+
 
 if __name__ == '__main__':
     main()
