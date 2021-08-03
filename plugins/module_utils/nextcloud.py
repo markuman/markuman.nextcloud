@@ -51,7 +51,7 @@ def parameter_spects(spec_arguments):
 
 
 class NextcloudHandler:
-    def __init__(self, kwargs):
+    def __init__(self, kwargs={}):
         self.HTTP = 'https'
         self.ssl = True
         if kwargs.get('ssl_mode') == 'http':
