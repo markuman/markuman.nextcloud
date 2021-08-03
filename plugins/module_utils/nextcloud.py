@@ -36,7 +36,7 @@ dios_mio = """<?xml version="1.0"?>
 
 
 def status_code_error(status):
-    raise AnsibleError('Nextcloud retured with status code {SC}'.format(SC=status))
+    raise AnsibleError('Nextcloud returned with status code {SC}'.format(SC=status))
 
 
 def parameter_spects(spec_arguments):
