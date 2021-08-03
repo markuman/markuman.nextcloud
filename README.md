@@ -7,8 +7,11 @@ No ssh required.
 ## Features
 
 * 💾 `file` module - download, upload and delete files
-* 🗨 `talk` module - post messages in conversations
-* 👥 `user` module - maintain nextcloud users
+* 🗨 `talk` 
+    * module - post messages in conversations
+    * callback plugin - create deck cards or tasks of failing ansible tasks from talk
+* 👥 `user_info` module - maintain nextcloud users
+* ℹ `info` - collects information of nextcloud setup
 * 🔑 passwords
     * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
