@@ -28,7 +28,7 @@ class CallbackModule(CallbackBase):
     def __init__(self):
 
         self.nc = NextcloudHandler({})
-        self.channel = os.environ.get('NEXTCLOUD_TALK_CHANNEL')
+        self.channel = os.environ.get('NEXTCLOUD_TALK_CALLBACK_CHANNEL')
         self.headers = {
             'Accept': 'application/json',
             'OCS-APIRequest': 'true'
