@@ -6,7 +6,7 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 build: ## build collection localy
-	ansible-galaxy collection build
+	ansible-galaxy collection build -f
 
 install: ## install collection localy
 	ansible-galaxy collection install markuman*
