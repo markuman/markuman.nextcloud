@@ -1,10 +1,20 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 import os
-import requests
 import json
+import traceback
 from ansible.errors import AnsibleError
 from xml.dom import minidom
+from ansible.module_utils.basic import missing_required_lib
+
+try:
+    import requests
+except ImportError:
+    HAS_REQUESTS_LIB = False
+    IMPORT_ERROR = traceback.format_exc()
+else:
+    HAS_REQUESTS_LIB = True
+
 
 dios_mio = """<?xml version="1.0"?>
 <d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
