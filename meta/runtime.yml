@@ -8,3 +8,4 @@ action_groups:
   - password_info
   - talk
   - user_info
+  - info

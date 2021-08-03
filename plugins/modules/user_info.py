@@ -15,6 +15,7 @@ author:
   - "Markus Bergholz (@markuman)"
 options:
   username:
+    version_added: "9.0.0"
     description:
       - Nextcloud username to receive detail information.
       - Nextcloud UserID
