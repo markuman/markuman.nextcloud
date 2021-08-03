@@ -58,6 +58,8 @@ class NextcloudHandler:
             self.HTTP = 'http'
         elif kwargs.get('ssl_mode') == 'skip':
             self.ssl = False
+        elif os.environ.get('NEXTCLOUD_SSL_MODE'):
+            self.HTTP = os.environ.get('NEXTCLOUD_SSL_MODE')
 
         self.details = kwargs.get('details') or False
 
