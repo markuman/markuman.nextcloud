@@ -11,7 +11,7 @@ No ssh required.
     * module - post messages in conversations
     * callback plugin - create deck cards or tasks of failing ansible tasks from talk
 * 👥 `user_info` module - maintain nextcloud users
-* ℹ `info` - collects information of nextcloud setup
+* 🛈 `info` - collects information of nextcloud setup
 * 🔑 passwords
     * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
@@ -24,6 +24,8 @@ No ssh required.
 ## Documentation / Usage
 
 * [Wiki](https://git.osuv.de/m/nextcloud_collection/wiki/Home)
+* `ansible-doc <module>`
+    * e.g. `ansible-doc markuman.nextcloud.file`
 
 ## Support
 
