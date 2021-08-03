@@ -51,6 +51,7 @@ EXAMPLES = """
     var: lookup('nextcloud_passwords', 'Stackoverflow' , host='nextcloud.tld', user='ansible', api_token='some-token', details=False)
 """
 
+
 class LookupModule(LookupBase):
 
     def run(self, terms, variables, **kwargs):

@@ -1,0 +1,8 @@
+- name: nextcloud informations
+  markuman.nextcloud.info:
+  register: out
+
+- name: verify nextcloud version
+  assert:
+    that:
+      - out.nextcloud.version.major == 21

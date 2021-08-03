@@ -1,5 +1,5 @@
 ---
-requires_ansible: '>=2.9.10'
+requires_ansible: '>=2.9.6'
 action_groups:
   nextcloud:
   - file
@@ -8,3 +8,4 @@ action_groups:
   - password_info
   - talk
   - user_info
+  - info

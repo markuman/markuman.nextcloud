@@ -1,8 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 
 DOCUMENTATION = '''
-module: markuman.nextcloud.file
+---
+module: file
 short_description: get/put/delete files from/to/on nextcloud
 description:
   - Download files from Nextcloud.
@@ -10,46 +15,30 @@ description:
   - Delete files on Nextcloud.
 version_added: "2.0.0"
 author:
-  - "Markus Bergholz"
-requirements:
-  - requests python module
+  - "Markus Bergholz (@markuman)"
 options:
-  api_token:
-    description:
-      - Nextcloud App Password.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-    aliases: ['access_token']
-  user:
-    description:
-      - Nextcloud user who (will) owns the file.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
-  host:
-    description:
-      - Nextcloud tld host.
-      - Can also be set as ENV variable.
-    required: false
-    type: str
   mode:
     description:
-      - Weather the file should be downloaded (get), uploaded (put) or deleted (delete).
+      - Weather the file should be
+        downloaded (get), uploaded (put) or deleted (delete).
     required: true
     type: str
   source:
     description:
-      - When the mode is get or delete, source describes the file location on nextcloud.
-      - When the mode is put, source describes the origin file location which will be uploaded to nextcloud.
+      - When the mode is get or delete, source describes
+        the file location on nextcloud.
+      - When the mode is put, source describes the origin file
+        location which will be uploaded to nextcloud.
     required: true
     aliases:
       - src
     type: str
   destination:
     description:
-      - When the mode is get, destination will the location of the downloaded file.
-      - When the mode is put, destination describes the file location on nextcloud.
+      - When the mode is get, destination will
+        the location of the downloaded file.
+      - When the mode is put, destination describes
+        the file location on nextcloud.
       - When the mode is delete, destination is not required.
     required: false
     aliases:
@@ -60,19 +49,23 @@ options:
       - Force overwrite locally on the filesystem
       - Used only with GET parameter.
       - one of [always, never, different, different_size].
-      - 'different' depends on md5sum an is made 'in memory' for remote files.
+      - C(different) depends on md5sum an is made C(in memory) for remote files.
     default: 'always'
     aliases: ['force', 'overwritten']
     type: str
-  ssl_mode:
+  delete_recursively:
     description:
-      - ability to use http:// for integration tests
-      - ability to skip ssl verification
-      - Possible values `https` (default https), `http` (http), `skip` (https) 
+      - Whether a target is deleted recursively.
+      - Necessary for folders.
     required: false
-    type: str
-    default: https
-    version_added: 3.0.3
+    type: bool
+    default: false
+    version_added: 8.0.0
+extends_documentation_fragment:
+  - markuman.nextcloud.nextcloud.connectivity
+notes:
+  - Supports C(check_mode).
+
 '''
 
 EXAMPLES = '''
@@ -86,33 +79,36 @@ EXAMPLES = '''
         api_token: xxx
 '''
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
+from ansible.errors import AnsibleError
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import os.path
 import hashlib
 
+
 def write_file(destination, content):
-    with open(destination,'wb') as FILE:
+    with open(destination, 'wb') as FILE:
         FILE.write(content)
+
 
 def create_remote_md5sum_in_memory(nc, remote_file):
     r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=remote_file))
     return hashlib.md5(r.content).hexdigest(), r.content
 
+
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            mode = dict(required=True, type='str'),
-            source = dict(required=True, type='str', aliases=['src']),
-            destination = dict(required=False, type='str', aliases=['dest']),
-            host = dict(required=False, type='str'),
-            user = dict(required=False, type='str'),
-            api_token = dict(required=False, type='str', no_log=True, aliases=['access_token']),
-            overwrite = dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
-            ssl_mode = dict(required=False, type='str', default='https', choices=['https', 'http', 'skip']),
-            delete_recursively = dict(required=False, type='bool', default=False)
-        ),
-        supports_check_mode=True
+        supports_check_mode=True,
+        argument_spec=parameter_spects(
+            dict(
+                mode=dict(required=True, type='str'),
+                source=dict(required=True, type='str', aliases=['src']),
+                destination=dict(required=False, type='str', aliases=['dest']),
+                overwrite=dict(required=False, type='str', default='always', aliases=['force', 'overwritten']),
+                delete_recursively=dict(required=False, type='bool', default=False)
+            )
+        )
     )
 
     nc = NextcloudHandler(module.params)
@@ -169,7 +165,6 @@ def main():
                         write_file(destination, r.content)
                         message = "File received. Size of dest and src aws not equal."
 
-
     elif mode == "delete":
         facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
         message = "File does not already exists."
@@ -194,8 +189,7 @@ def main():
         facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=destination))
         if overwrite == 'always' or facts == {}:
             if not module.check_mode:
-                r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
-                                    source)
+                r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination), source)
                 message = "File uploaded."
             else:
                 message = "File not uploaded due check_mode."
@@ -205,17 +199,14 @@ def main():
             message = "File not uploaded because size of dest and src is equal."
             if os.path.getsize(source) != facts.get('size'):
                 if not module.check_mode:
-                    r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination),
-                                source)
+                    r, change = nc.put("remote.php/dav/files/{USER}/{DEST}".format(USER=nc.user(), DEST=destination), source)
                     message = "File was uploaded. Size of dest and src was not equal."
                 else:
                     message = "File not uploaded due check_mode. Size of dest and src is not equal."
                     change = True
 
+    module.exit_json(changed=change, file={'destination': destination, 'mode': mode, 'source': source}, message=message)
 
-
-    module.exit_json(changed = change, file={'destination': destination, 'mode': mode, 'source': source}, message=message)
-    
 
 if __name__ == '__main__':
     main()

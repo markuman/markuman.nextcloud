@@ -6,18 +6,19 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 build: ## build collection localy
-	ansible-galaxy collection build
+	ansible-galaxy collection build -f
 
 install: ## install collection localy
 	ansible-galaxy collection install markuman*
 
 remove: ## remove collection localy
-	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/
+	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/nextcloud
 
 syntax: ## test compile
-	python -m py_compile plugins/lookup/passwords.py
+	python -m py_compile plugins/lookup/*.py
 	python -m py_compile plugins/module_utils/nextcloud.py
 	python -m py_compile plugins/modules/*.py
+	python -m py_compile plugins/callback/*.py
 
 fullround: ## everything
 	$(MAKE) syntax

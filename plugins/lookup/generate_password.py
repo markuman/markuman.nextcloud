@@ -23,6 +23,9 @@ author:
     - Markus Bergholz <markuman@gmail.com>
 version_added: 7.0.0
 short_description: fetch generated password from nextcloud password app
+description:
+    - fetch generated password from nextcloud password app
+    - See U(https://apps.nextcloud.com/apps/passwords)
 options:
   _terms:
     description: Label of the requested password.
@@ -44,6 +47,7 @@ EXAMPLES = """
   debug:
     var: lookup('markuman.nextcloud.generate_password', 'dokuwiki')
 """
+
 
 class LookupModule(LookupBase):
 
