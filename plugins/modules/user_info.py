@@ -13,6 +13,14 @@ description:
 version_added: "4.0.0"
 author:
   - "Markus Bergholz (@markuman)"
+options:
+  username:
+    description:
+      - Nextcloud username to receive detail information.
+      - Nextcloud UserID
+    required: false
+    type: str
+    aliases: ['user_id']
 extends_documentation_fragment:
   - markuman.nextcloud.nextcloud.connectivity
 notes:
@@ -20,8 +28,18 @@ notes:
 '''
 
 EXAMPLES = '''
-    - name: install and enable impersonate app
+    - name: >
+        user info
+        returns list of all users
       markuman.nextcloud.user_info:
+      register: out
+
+    - name: >
+        user info detailed
+        returns details for one requested user
+      markuman.nextcloud.user_info:
+          username: some_user
+      register: out
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -32,14 +50,23 @@ from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud impor
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
-        argument_spec=parameter_spects({})
+        argument_spec=parameter_spects(dict(
+            username=dict(required=False, type='str', aliases=['user_id'])
+        ))
     )
 
     nc = NextcloudHandler(module.params)
+    username = module.params.get('username')
 
-    retval = nc.get('/ocs/v1.php/cloud/users').json()
-
-    module.exit_json(users=retval.get('ocs', {}).get('data', {}).get('users', []))
+    if username:
+        retval = nc.get(f'/ocs/v1.php/cloud/users/{username}').json()
+        module.exit_json(
+          users=[username],
+          user_data=retval.get('ocs', {}).get('data')
+        )
+    else:
+        retval = nc.get('/ocs/v1.php/cloud/users').json()
+        module.exit_json(users=retval.get('ocs', {}).get('data', {}).get('users', []),user_data={})
 
 
 if __name__ == '__main__':
