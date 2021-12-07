@@ -89,7 +89,8 @@ def main():
             name=dict(required=True, type='str'),
             state=dict(type='str', choices=['present', 'absent'], default='present'),
             password=dict(required=False, type='str', no_log=True),
-            update_password=dict(type='str', choices=['always', 'on_create'], default='on_create'),
+            # setting no_log=False on update_password avoids a false positive warning about not setting no_log
+            update_password=dict(type='str', choices=['always', 'on_create'], default='on_create', no_log=False),
             username=dict(required=False, type='str'),
             url=dict(required=False, type='str'),
             notes=dict(required=False, type='str'),
