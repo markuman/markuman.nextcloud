@@ -15,7 +15,7 @@ pipeline:
       - apk --update add ansible py3-requests curl
       - ansible-galaxy collection build
       - ansible-galaxy collection install markuman-nextcloud-*
-      - ansible-playbook tests/integration.yml
+      - cd tests/integration/targets/ && ansible-playbook woodpecker.yml
 
 services:
   nextcloud21:
