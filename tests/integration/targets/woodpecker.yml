@@ -3,6 +3,27 @@
   connection: local
   gather_facts: no
 
+  vars:
+    SSL_MODE: skip
+  
+  module_defaults:
+    markuman.nextcloud.file:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.file_info:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.password:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.password_info:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.passwords:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.generate_password:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.user_info:
+      ssl_mode: "{{ SSL_MODE }}"
+    markuman.nextcloud.info:
+      ssl_mode: "{{ SSL_MODE }}"
+
   tasks:
     - name: wait for nextcloud (pull image and install)
       get_url:
@@ -13,85 +34,20 @@
       delay: 5
       retries: 50
 
-    - name: test
+    - name: integration tests
       block:
-        ########### prepair
-        - name: Download ansible.svg from wikipedia
-          get_url:
-            url: https://de.wikipedia.org/wiki/Ansible#/media/Datei:Ansible_logo.svg
-            dest: /tmp/ansible.svg
+        - name: file integration test
+          include_role:
+            name: info
 
-        ########### test
-        - name: upload file on nextcloud
-          markuman.nextcloud.file:
-            mode: put
-            src: /tmp/ansible.svg
-            dest: ansible.svg
-            ssl_mode: http
-          register: out_state
+        - name: file integration test
+          include_role:
+            name: user
 
-        - name: state must be changed
-          assert:
-            that:
-              - out_state is changed
+        - name: file integration test
+          include_role:
+            name: file
 
-        - name: GET file from nextcloud
-          markuman.nextcloud.file:
-            mode: get
-            src: ansible.svg
-            dest: /tmp/tmp.svg
-            ssl_mode: http
-          register: out_state
-
-        - name: state must be changed
-          assert:
-            that:
-              - out_state is changed
-
-        - name: OK fetch file from nextcloud
-          markuman.nextcloud.file:
-            mode: get
-            src: ansible.svg
-            dest: /tmp/ansible.svg
-            overwritten: different
-            ssl_mode: http
-          register: out_state
-
-        - name: state must not be changed
-          assert:
-            that:
-              - out_state is not changed
-
-        - name: delete file on nextcloud
-          markuman.nextcloud.file:
-            mode: delete
-            src: ansible.svg
-            ssl_mode: http
-          register: out_state
-
-        - name: state must be changed
-          assert:
-            that:
-              - out_state is changed
-
-        - name: immutable delete file on nextcloud
-          markuman.nextcloud.file:
-            mode: delete
-            src: ansible.svg
-            ssl_mode: http
-          register: out_state
-
-        - name: state must not be changed
-          assert:
-            that:
-              - out_state is not changed
-
-        - name: get nc users
-          markuman.nextcloud.user_info:
-            ssl_mode: http
-          register: out
-
-        - name: verify change
-          assert:
-            that:
-              - out.users | count == 1
+        - name: passwords integration test
+          include_role:
+            name: passwords
