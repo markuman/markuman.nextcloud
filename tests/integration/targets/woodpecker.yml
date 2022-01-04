@@ -49,5 +49,6 @@
             name: file
 
         - name: passwords integration test
+          when: SSL_MODE != 'http'
           include_role:
             name: passwords
