@@ -18,5 +18,5 @@ pipeline:
       - ansible-playbook tests/integration.yml
 
 services:
-  - name: nextcloud21
+  nextcloud21:
     image: public.ecr.aws/h6n8g0x7/osuv:nc21_it
