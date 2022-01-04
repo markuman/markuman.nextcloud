@@ -4,7 +4,7 @@
   gather_facts: no
 
   vars:
-    SSL_MODE: skip
+    SSL_MODE: http
   
   module_defaults:
     markuman.nextcloud.file:
