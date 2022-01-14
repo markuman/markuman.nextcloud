@@ -14,6 +14,9 @@ install: ## install collection localy
 remove: ## remove collection localy
 	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/nextcloud
 
+sanity: ## sanity checks
+	ansible-test sanity --python 3.8 --docker default
+
 syntax: ## test compile
 	python -m py_compile plugins/lookup/*.py
 	python -m py_compile plugins/module_utils/nextcloud.py
@@ -25,6 +28,7 @@ fullround: ## everything
 	$(MAKE) remove
 	$(MAKE) build
 	$(MAKE) install
+	$(MAKE) sanity
 	$(MAKE) test
 
 round: ## short round

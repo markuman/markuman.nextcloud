@@ -56,18 +56,15 @@ def main():
         ))
     )
 
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
     username = module.params.get('username')
 
     if username:
         retval = nc.get(f'/ocs/v1.php/cloud/users/{username}').json()
-        module.exit_json(
-          users=[username],
-          user_data=retval.get('ocs', {}).get('data')
-        )
+        module.exit_json(users=[username], user_data=retval.get('ocs', {}).get('data'))
     else:
         retval = nc.get('/ocs/v1.php/cloud/users').json()
-        module.exit_json(users=retval.get('ocs', {}).get('data', {}).get('users', []),user_data={})
+        module.exit_json(users=retval.get('ocs', {}).get('data', {}).get('users', []), user_data={})
 
 
 if __name__ == '__main__':

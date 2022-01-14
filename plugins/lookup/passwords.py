@@ -1,15 +1,15 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.lookup import LookupBase
-
+from ansible.errors import AnsibleError
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 
 try:
     import requests
+    HAS_REQUESTS_LIB = True
 except ImportError:
-    raise AnsibleError("Please install requests library.")
+    HAS_REQUESTS_LIB = False
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -55,7 +55,18 @@ EXAMPLES = """
 class LookupModule(LookupBase):
 
     def run(self, terms, variables, **kwargs):
+        params = dict()
+        if kwargs.get('host'):
+            params['host'] = kwargs.get('host')
+        if kwargs.get('api_token'):
+            params['api_token'] = kwargs.get('api_token')
+        if kwargs.get('user'):
+            params['user'] = kwargs.get('user')
+        if kwargs.get('details') is not None:
+            params['details'] = kwargs.get('details')
+        if kwargs.get('ssl_mode') is not None:
+            params['ssl_mode'] = kwargs.get('ssl_mode')
 
-        nc = NextcloudHandler(kwargs)
+        nc = NextcloudHandler(params, AnsibleError)
         for term in terms:
             return nc.get_password(term)

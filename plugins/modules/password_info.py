@@ -42,7 +42,7 @@ def main():
         ))
     )
     module.params["details"] = True
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     if module.params.get('name'):
         retval = nc.get_password(module.params.get('name'))

@@ -36,7 +36,7 @@ def main():
         argument_spec=parameter_spects(dict())
     )
 
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     retval = nc.get('/ocs/v1.php/cloud/capabilities').json()
     module.exit_json(nextcloud=retval.get('ocs').get('data'))

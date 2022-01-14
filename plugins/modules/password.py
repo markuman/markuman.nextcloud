@@ -79,7 +79,6 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
-from ansible.errors import AnsibleError
 
 
 def main():
@@ -99,7 +98,7 @@ def main():
         ))
     )
     module.params["details"] = True
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     name = module.params.get('name')
     password = module.params.get('password') or nc.fetch_generated_password()
@@ -178,7 +177,7 @@ def main():
             module.exit_json(changed=True, password=retval)
 
         else:
-            raise AnsibleError('More than one password identifies. Cannot continue')
+            module.fail_json(msg='More than one password identifies. Cannot continue')
 
     elif state == 'absent':
         if len(retval) == 1:
@@ -192,7 +191,7 @@ def main():
         elif len(retval) == 0:
             module.exit_json(changed=False, password={})
         else:
-            raise AnsibleError('More than one password identifies. Cannot continue')
+            module.fail_json(msg='More than one password identifies. Cannot continue')
 
 
 if __name__ == '__main__':

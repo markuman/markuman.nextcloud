@@ -26,8 +26,8 @@ class CallbackModule(CallbackBase):
     CALLBACK_NEEDS_WHITELIST = True
 
     def __init__(self):
-
-        self.nc = NextcloudHandler({})
+        params = {}
+        self.nc = NextcloudHandler(params, self._display.warning)
         self.channel = os.environ.get('NEXTCLOUD_TALK_CALLBACK_CHANNEL')
         self.headers = {
             'Accept': 'application/json',
