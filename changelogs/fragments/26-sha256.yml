@@ -1,3 +1,0 @@
-minor_changes:
-  - file - replace md5 with sha256 when comparing files.
-  - remove unused variables and imports
