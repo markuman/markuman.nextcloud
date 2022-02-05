@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 import os
-import json
 import traceback
 from xml.dom import minidom
-from ansible.module_utils.basic import missing_required_lib
 
 try:
     import requests
