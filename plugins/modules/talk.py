@@ -41,7 +41,6 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
-import json
 
 
 def main():
@@ -56,11 +55,6 @@ def main():
 
     message = module.params.get("msg")
     channel = module.params.get("channel")
-
-    headers = {
-        'Accept': 'application/json',
-        'OCS-APIRequest': 'true'
-    }
 
     r, change = nc.talk(message, channel)
 

@@ -49,7 +49,7 @@ options:
       - Force overwrite locally on the filesystem
       - Used only with GET parameter.
       - one of [always, never, different, different_size].
-      - C(different) depends on md5sum an is made C(in memory) for remote files.
+      - C(different) depends on sha256sum an is made C(in memory) for remote files.
     default: 'always'
     aliases: ['force', 'overwritten']
     type: str
@@ -91,9 +91,9 @@ def write_file(destination, content):
         FILE.write(content)
 
 
-def create_remote_md5sum_in_memory(nc, remote_file):
+def create_remote_sha256sum_in_memory(nc, remote_file):
     r = nc.get("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=remote_file))
-    return hashlib.md5(r.content).hexdigest(), r.content
+    return hashlib.sha256(r.content).hexdigest(), r.content
 
 
 def main():
@@ -139,21 +139,21 @@ def main():
                     message = "File received"
 
             elif overwrite == 'different':
-                # md5sum local file
-                local = hashlib.md5()
+                # sha256sum local file
+                local = hashlib.sha256()
                 with open(destination, "rb") as FILE:
                     for chunk in iter(lambda: FILE.read(4096), b""):
                         local.update(chunk)
 
-                # md5sum remote file
-                remote = hashlib.md5(r.content)
-                message = "md5sum of dest and src is equal."
+                # sh256sum remote file
+                remote = hashlib.sha256(r.content)
+                message = "sha256sum of dest and src is equal."
                 if remote.hexdigest() != local.hexdigest():
                     change = True
-                    message = "md5sum of dest and src is not equal. But file was not written due check_mode."
+                    message = "sha256sum of dest and src is not equal. But file was not written due check_mode."
                     if not module.check_mode:
                         write_file(destination, r.content)
-                        message = "File received. md5sum of dest and src was not equal."
+                        message = "File received. sha256sum of dest and src was not equal."
 
             elif overwrite == 'different_size':
                 message = "size of dest and src is equal."

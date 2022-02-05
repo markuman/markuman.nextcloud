@@ -36,8 +36,6 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
-import os.path
-import hashlib
 
 
 def write_file(destination, content):
