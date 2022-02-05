@@ -31,6 +31,7 @@ No ssh required.
 
 | **host** | **category** |
 | --- | --- |
-| https://git.osuv.de/m/nextcloud_collection | origin |
-| https://gitlab.com/markuman/nextcloud_collection | pull mirror, merge-requests and Issues |
-| https://github.com/markuman/nextcloud_collection | push mirror, pull-requests and Issues |
+| https://git.osuv.de/ansible_collections/markuman.nextcloud | origin |
+| https://gitlab.com/markuman/markuman.nextcloud | push mirror, merge-requests and Issues |
+| https://github.com/markuman/markuman.nextcloud | push mirror, pull-requests and Issues |
+

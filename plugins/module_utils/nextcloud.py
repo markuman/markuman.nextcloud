@@ -3,17 +3,15 @@ __metaclass__ = type
 import os
 import json
 import traceback
-from ansible.errors import AnsibleError
 from xml.dom import minidom
 from ansible.module_utils.basic import missing_required_lib
 
 try:
     import requests
+    HAS_REQUESTS_LIB = True
 except ImportError:
     HAS_REQUESTS_LIB = False
     IMPORT_ERROR = traceback.format_exc()
-else:
-    HAS_REQUESTS_LIB = True
 
 
 dios_mio = """<?xml version="1.0"?>
@@ -35,8 +33,15 @@ dios_mio = """<?xml version="1.0"?>
 """
 
 
-def status_code_error(status):
-    raise AnsibleError('Nextcloud returned with status code {SC}'.format(SC=status))
+class NextcloudErrorHandler:
+    def __init__(self, fail_json):
+        self.fail = fail_json
+
+        def status_code_error(self, status):
+            try:
+                self.fail(msg='Nextcloud returned with status code {SC}'.format(SC=status))
+            except Exception:
+                self.fail('Nextcloud returned with status code {SC}'.format(SC=status))
 
 
 def parameter_spects(spec_arguments):
@@ -51,31 +56,32 @@ def parameter_spects(spec_arguments):
 
 
 class NextcloudHandler:
-    def __init__(self, kwargs={}):
+    def __init__(self, params, fail_json):
+        self.exit = NextcloudErrorHandler(fail_json)
         self.HTTP = 'https'
         self.ssl = True
-        if kwargs.get('ssl_mode') == 'http':
+        if params.get('ssl_mode') == 'http':
             self.HTTP = 'http'
-        elif kwargs.get('ssl_mode') == 'skip':
+        elif params.get('ssl_mode') == 'skip':
             self.ssl = False
         elif os.environ.get('NEXTCLOUD_SSL_MODE') == 'http':
             self.HTTP = 'http'
         elif os.environ.get('NEXTCLOUD_SSL_MODE') == 'skip':
             self.ssl = False
 
-        self.details = kwargs.get('details') or False
+        self.details = params.get('details') or False
 
-        self.HOST = kwargs.get('host') or os.environ.get('NEXTCLOUD_HOST')
+        self.HOST = params.get('host') or os.environ.get('NEXTCLOUD_HOST')
         if self.HOST is None:
-            raise AnsibleError('Unable to continue. No Nextcloud Host is given.')
+            self.exit.status_code_error('Unable to continue. No Nextcloud Host is given.')
 
-        self.USER = kwargs.get('user') or os.environ.get('NEXTCLOUD_USER')
+        self.USER = params.get('user') or os.environ.get('NEXTCLOUD_USER')
         if self.USER is None:
-            raise AnsibleError('Unable to continue. No Nextcloud User is given.')
+            self.exit.status_code_error('Unable to continue. No Nextcloud User is given.')
 
-        self.TOKEN = kwargs.get('api_token') or os.environ.get('NEXTCLOUD_TOKEN')
+        self.TOKEN = params.get('api_token') or os.environ.get('NEXTCLOUD_TOKEN')
         if self.TOKEN is None:
-            raise AnsibleError('Unable to continue. No Nextcloud Token is given.')
+            self.exit.status_code_error('Unable to continue. No Nextcloud Token is given.')
 
         self.headers = {
             'Accept': 'application/json',
@@ -91,9 +97,9 @@ class NextcloudHandler:
         if r.status_code == 200:
             return r
         elif r.status_code == 404:
-            raise AnsibleError('File {FILE} does not exist'.format(FILE=path))
+            self.exit.status_code_error('File {FILE} does not exist'.format(FILE=path))
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def propfind(self, path):
         s = requests.Session()
@@ -118,7 +124,7 @@ class NextcloudHandler:
                     'owner': dom.getElementsByTagName('oc:owner-display-name')[0].firstChild.data,
                     'href': dom.getElementsByTagName('d:href')[0].firstChild.data
                 }
-            except:
+            except Exception:
                 # I guess it's folder, because it has no content_type
                 return {
                     'last_modified': dom.getElementsByTagName('d:getlastmodified')[0].firstChild.data,
@@ -134,7 +140,7 @@ class NextcloudHandler:
             return {}
 
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def put(self, path, src):
         r = requests.put(
@@ -145,7 +151,7 @@ class NextcloudHandler:
         if r.status_code in [200, 201, 204]:
             return r, True
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def delete(self, path):
         r = requests.delete(
@@ -158,7 +164,7 @@ class NextcloudHandler:
         elif r.status_code == 404:
             return r, False
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def talk(self, message, channel):
         body = {
@@ -179,21 +185,21 @@ class NextcloudHandler:
         if r.status_code == 201:
             return r, True
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def list_passwords(self):
         r = self.get("index.php/apps/passwords/api/1.0/password/list")
         if r.status_code == 200:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def list_passwords_folders(self):
         r = self.get("index.php/apps/passwords/api/1.0/folder/list")
         if r.status_code == 200:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def create_passwords_folder(self, name):
         post_obj = {
@@ -211,7 +217,7 @@ class NextcloudHandler:
         if r.status_code == 201:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def get_passwords_folder(self, name):
         for folder in self.list_passwords_folders():
@@ -235,7 +241,7 @@ class NextcloudHandler:
         if r.status_code == 200:
             return [r.json().get('password')]
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def create_password(self, post_obj):
         r = requests.post(
@@ -249,7 +255,7 @@ class NextcloudHandler:
         if r.status_code == 201:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def delete_password(self, post_obj):
         r = requests.delete(
@@ -263,7 +269,7 @@ class NextcloudHandler:
         if r.status_code == 200:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def update_password(self, post_obj):
         r = requests.patch(
@@ -277,7 +283,7 @@ class NextcloudHandler:
         if r.status_code == 200:
             return r.json()
         else:
-            status_code_error(r.status_code)
+            self.exit.status_code_error(r.status_code)
 
     def user(self):
         return self.USER

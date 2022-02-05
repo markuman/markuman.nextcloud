@@ -52,7 +52,7 @@ def main():
         ))
     )
 
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     message = module.params.get("msg")
     channel = module.params.get("channel")

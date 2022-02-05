@@ -53,7 +53,7 @@ def main():
         ))
     )
 
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     source = module.params.get("source")
 

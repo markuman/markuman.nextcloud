@@ -80,7 +80,6 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.errors import AnsibleError
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
 import os.path
@@ -111,7 +110,7 @@ def main():
         )
     )
 
-    nc = NextcloudHandler(module.params)
+    nc = NextcloudHandler(module.params, module.fail_json)
 
     mode = module.params.get("mode")
     source = module.params.get("source")
@@ -126,7 +125,7 @@ def main():
         facts = nc.propfind("remote.php/dav/files/{USER}/{SRC}".format(USER=nc.user(), SRC=source))
 
         if destination is None:
-            raise AnsibleError('No destination is given')
+            module.fail_json(msg='No destination is given')
 
         if facts == {}:
             message = "Requested file does not exist."
