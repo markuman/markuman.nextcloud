@@ -15,3 +15,17 @@ releases:
     - 25-fixes.yml
     - 9.0.1.yml
     release_date: '2022-02-05'
+  9.0.2:
+    changes:
+      minor_changes:
+      - file - replace md5 with sha256 when comparing files.
+      - remove unused variables and imports
+      release_summary: 'This is the patch release of the ``markuman.nextcloud`` collection.
+
+        This changelog contains all changes to the modules and plugins in this collection
+
+        that have been made after the previous release.'
+    fragments:
+    - 26-sha256.yml
+    - 9.0.2.yml
+    release_date: '2022-02-05'
