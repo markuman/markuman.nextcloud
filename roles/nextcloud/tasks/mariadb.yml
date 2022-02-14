@@ -1,21 +1,42 @@
-# init TODO
+- name: init user
+  command: >
+    sudo mysql -uroot -e "
+    CREATE USER '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_password }}';
+    CREATE DATABASE IF NOT EXISTS nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+    GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ nextcloud_db_user }}'@'localhost';
+    UPDATE mysql.user SET plugin='mysql_native_password';  
+    SET PASSWORD FOR root@localhost = PASSWORD('{{ mariadb_root_password }}');
+    FLUSH PRIVILEGES;"
 
-- name: add nextcloud database
-  become: yes
-  community.mysql.mysql_db:
-    name: nextcloud
-    login_user: root
-    state: present
+- name: root save my.cnf
+  ini_file:
+    owner: root
+    path: "/root/.my.cnf"
+    section: client
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: '0600'
+  with_items:
+    - option: user
+      value: root
+    - option: password
+      value: "{{ mariadb_root_password }}"
 
-- name: "[mySQL] - Configure the database user."
-  mysql_user:
-    name: "{{ nextcloud_db_user }}"
-    password: "{{ nextcloud_db_pwd }}"
-    priv: "{{ nextcloud_db_name }}.*:ALL"
-    login_user: root
-    login_password: "{{ nextcloud_mysql_root_pwd }}"
-    config_file: "{{ mysql_credential_file[(ansible_os_family|lower)] | default(omit) }}"
-    state: present
+- name: save my.cnf
+  ini_file:
+    owner: "{{ ubuntu_nextcloud_user }}"
+    path: "/home/{{ ubuntu_nextcloud_user }}/.my.cnf"
+    section: client
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: '0600'
+  with_items:
+    - option: user
+      value: "{{ nextcloud_db_user }}"
+    - option: password
+      value: "{{ nextcloud_db_password }}"
 
 - include_role:
-  name: devsec.hardening.mysql_hardening
+    name: devsec.hardening.mysql_hardening
+  vars:
+    mysql_root_password: "{{ mariadb_root_password }}"

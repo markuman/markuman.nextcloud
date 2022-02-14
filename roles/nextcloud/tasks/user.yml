@@ -4,17 +4,27 @@
     shell: /bin/bash
     comment: Ubuntu Nextcloud System User
     password_expire_max: 99999
-    groups: www-data
+    groups:
+      - www-data
+      - sudo
 
 - name: set authorized_keys file for ubuntu nextcloud user
   ansible.posix.authorized_key:
     user: "{{ ubuntu_nextcloud_user }}"
     state: present
     manage_dir: yes
-    key: "{{ lookup('url', ubuntu_nextcloud_user_ssh_key_location, split_lines=False) }}"
+    key: "{{ ubuntu_nextcloud_user_ssh_key_location }}"
+
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo	ALL=(ALL:ALL) ALL'
+    line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
 
 - name: ssh hardening
   include_role:
-  name: devsec.hardening.ssh_hardening
+    name: devsec.hardening.ssh_hardening
   vars:
     ssh_allow_users: "{{ ubuntu_nextcloud_user }}"

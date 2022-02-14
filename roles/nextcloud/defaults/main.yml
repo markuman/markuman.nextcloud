@@ -1,5 +1,3 @@
-ubuntu_nextcloud_user: nextcloud
-ubuntu_nextcloud_user_ssh_key_location: https://github.com/markuman.keys
 nextcloud_version: 23.0.0
 
 nextcloud_db_name: nextcloud
