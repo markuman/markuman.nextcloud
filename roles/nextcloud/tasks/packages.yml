@@ -1,3 +1,16 @@
+- name: set hostname
+  hostname:
+    name: "{{ nextcloud_fqdn.split('.')[0] }}"
+
+- name: resolv myself
+  command: host "{{ nextcloud_fqdn }}"
+  register: myself
+
+- name: complete /etc/hosts
+  lineinfile:
+    name: /etc/hosts
+    line: "{{ myself.stdout_lines[0].split(' ')[-1] }} {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
+
 - name: uprade all packages first
   apt:
     update_cache: yes
@@ -15,6 +28,7 @@
       - ufw
       - vnstat
       - python3-pymysql
+      - python3-certbot-nginx
       - php-fpm
       - php-gd
       - php-mysql
@@ -46,6 +60,27 @@
   with_items:
     - 80
     - 443
+  
+
+- name: ufw - http & https egress
+  community.general.ufw:
+    direction: out
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  with_items:
+    - port: 80
+      proto: tcp
+      desc: http
+    - port: 443
+      proto: tcp
+      desc: https
+    - port: 53
+      proto: udp
+      desc: dns
+    - port: 123
+      proto: udp
+      desc: ntp
 
 - name: ufw - enable
   community.general.ufw:
