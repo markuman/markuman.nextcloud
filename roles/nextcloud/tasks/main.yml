@@ -1,0 +1,11 @@
+- include_tasks: user.yml
+- include_tasks: packages.yml
+- include_tasks: mariadb.yml
+
+- name: summarize vars
+  set_fact:
+    nextcloud_vars:
+      nextcloud_db_user: "{{ nextcloud_db_user }}"
+      nextcloud_db_pwd: "{{ nextcloud_db_pwd }}"
+      nextcloud_db_name: "{{ nextcloud_db_name }}"
+      

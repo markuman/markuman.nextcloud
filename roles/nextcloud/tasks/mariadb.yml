@@ -1,0 +1,21 @@
+# init TODO
+
+- name: add nextcloud database
+  become: yes
+  community.mysql.mysql_db:
+    name: nextcloud
+    login_user: root
+    state: present
+
+- name: "[mySQL] - Configure the database user."
+  mysql_user:
+    name: "{{ nextcloud_db_user }}"
+    password: "{{ nextcloud_db_pwd }}"
+    priv: "{{ nextcloud_db_name }}.*:ALL"
+    login_user: root
+    login_password: "{{ nextcloud_mysql_root_pwd }}"
+    config_file: "{{ mysql_credential_file[(ansible_os_family|lower)] | default(omit) }}"
+    state: present
+
+- include_role:
+  name: devsec.hardening.mysql_hardening

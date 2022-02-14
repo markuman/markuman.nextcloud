@@ -1,0 +1,26 @@
+- name: install apache, php and mariadb
+  apt:
+    update_cache: yes
+    state: latest
+    upgrade: yes
+    name:
+      - nginx
+      - mariadb-server
+      - mariadb-client
+      - ufw
+      - php-fpm
+      - php-gd
+      - php-mysql
+      - php-curl
+      - php-xml
+      - php-zip
+      - php-intl
+      - php-mbstring
+      - php-bz2
+      - php-json
+      - php-apcu
+      - php-imagick
+      - php-gmp
+      - php-bcmath
+      - imagemagick
+      - libmagickcore-6.q16-6-extra

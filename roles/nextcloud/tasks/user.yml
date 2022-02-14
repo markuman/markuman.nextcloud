@@ -1,0 +1,20 @@
+- name: add ubuntu nextcloud system user
+  ansible.builtin.user:
+    name: "{{ ubuntu_nextcloud_user }}"
+    shell: /bin/bash
+    comment: Ubuntu Nextcloud System User
+    password_expire_max: 99999
+    groups: www-data
+
+- name: set authorized_keys file for ubuntu nextcloud user
+  ansible.posix.authorized_key:
+    user: "{{ ubuntu_nextcloud_user }}"
+    state: present
+    manage_dir: yes
+    key: "{{ lookup('url', ubuntu_nextcloud_user_ssh_key_location, split_lines=False) }}"
+
+- name: ssh hardening
+  include_role:
+  name: devsec.hardening.ssh_hardening
+  vars:
+    ssh_allow_users: "{{ ubuntu_nextcloud_user }}"
