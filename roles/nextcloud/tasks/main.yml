@@ -2,3 +2,4 @@
 - include_tasks: user.yml
 - include_tasks: mariadb.yml
 - include_tasks: nginx_php.yml
+- include_tasks: nextcloud.yml

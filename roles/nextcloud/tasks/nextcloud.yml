@@ -1,0 +1,22 @@
+- name: get nextcloud itself
+  unarchive:
+    src: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "/var/www/"
+    remote_src: yes
+    owner: www-data
+    group: www-data
+
+- name: install nextcloud
+  args:
+    chdir: /var/www/nextcloud/
+  command: >
+    sudo -u www-data php occ  maintenance:install --database
+    "mysql" --database-name "nextcloud"  --database-user "nextcloud" --database-pass
+    "{{ nextcloud_db_password }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_password }}"
+
+- name: set trusted domain
+  args:
+    chdir: /var/www/nextcloud/
+  command: >
+    sudo -u www-data php occ config:system:set trusted_domains 2
+    --value={{ nextcloud_fqdn }}

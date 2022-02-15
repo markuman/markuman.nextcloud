@@ -1,5 +1,5 @@
 upstream php-handler {
-    server unix:/var/run/php/php7.4-fpm.sock;
+    server unix:/run/php/php7.4-fpm.sock;
 }
 
 server {
@@ -18,8 +18,8 @@ server {
 
     # Use Mozilla's guidelines for SSL/TLS settings
     # https://mozilla.github.io/server-side-tls/ssl-config-generator/
-    ssl_certificate     /etc/ssl/nginx/cloud.example.com.crt;
-    ssl_certificate_key /etc/ssl/nginx/cloud.example.com.key;
+    ssl_certificate     /etc/letsencrypt/live/{{ nextcloud_fqdn }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nextcloud_fqdn }}/privkey.pem;
 
     # HSTS settings
     # WARNING: Only add the preload option once you read about

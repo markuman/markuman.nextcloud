@@ -29,6 +29,7 @@
       - vnstat
       - python3-pymysql
       - python3-certbot-nginx
+      - unzip
       - php-fpm
       - php-gd
       - php-mysql
