@@ -5,11 +5,6 @@
     SET PASSWORD FOR root@localhost = PASSWORD('{{ mariadb_root_password }}');
     FLUSH PRIVILEGES;"
 
-- include_role:
-    name: devsec.hardening.mysql_hardening
-  vars:
-    mysql_root_password: "{{ mariadb_root_password }}"
-
 - name: root save my.cnf
   ini_file:
     owner: root
@@ -23,6 +18,11 @@
       value: root
     - option: password
       value: "{{ mariadb_root_password }}"
+
+- include_role:
+    name: devsec.hardening.mysql_hardening
+  vars:
+    mysql_root_password: "{{ mariadb_root_password }}"
 
 - name: save my.cnf
   ini_file:
@@ -38,12 +38,18 @@
     - option: password
       value: "{{ nextcloud_db_password }}"
 
-- name: init nextcloud user and database
-  command: >
-    sudo mysql -uroot -e "
-    CREATE USER IF NOT EXISTS '{{ nextcloud_db_user }}'@'localhost' IDENTIFIED BY '{{ nextcloud_db_password }}';
-    CREATE DATABASE IF NOT EXISTS nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-    GRANT ALL PRIVILEGES ON nextcloud.* TO '{{ nextcloud_db_user }}'@'localhost';
-    UPDATE mysql.user SET plugin='mysql_native_password';
-    FLUSH PRIVILEGES;"
+- name: create nextcloud db
+  community.mysql.mysql_db:
+    name: nextcloud
+    encoding: utf8mb4
+    collation: utf8mb4_general_ci
+    state: present
+
+- name: add nextcloud mysql user
+  community.mysql.mysql_user:
+    name: nextcloud
+    password: "{{ nextcloud_db_password }}"
+    priv: 'nextcloud.*:ALL'
+    state: present
+
 

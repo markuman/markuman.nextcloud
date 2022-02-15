@@ -2,14 +2,10 @@
   hostname:
     name: "{{ nextcloud_fqdn.split('.')[0] }}"
 
-- name: resolv myself
-  command: host "{{ nextcloud_fqdn }}"
-  register: myself
-
 - name: complete /etc/hosts
   lineinfile:
     name: /etc/hosts
-    line: "{{ myself.stdout_lines[0].split(' ')[-1] }} {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
+    line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
 
 - name: uprade all packages first
   apt:
@@ -47,43 +43,32 @@
       - imagemagick
       - libmagickcore-6.q16-6-extra
 
-- name: ufw - limit ssh port 
-  community.general.ufw:
-    rule: limit
-    port: ssh
-    proto: tcp
+- name: enable ipv6 for ufw
+  lineinfile:
+    name: /etc/default/ufw
+    regexp: ^IPV6.*
+    line: IPV6=yes
+  notify:
+    - reload ufw
 
-- name: ufw - allow http & https ports
-  community.general.ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
+- name: ufw rules
+  command: "{{ item }}"
   with_items:
-    - 80
-    - 443
-  
+    - ufw limit ssh
+    - ufw allow out 22
+    # - ufw default deny outgoing
+    # - ufw default deny incoming
+    - ufw allow 80
+    - ufw allow 443
+    - ufw allow out 80
+    - ufw allow out 443
+    - ufw allow out 53/udp
+    - ufw allow out 123/udp
+    - ufw allow out 993
+    - ufw allow out 587
+    - ufw allow out 465
 
-- name: ufw - http & https egress
-  community.general.ufw:
-    direction: out
-    rule: allow
-    port: "{{ item.port }}"
-    proto: "{{ item.proto }}"
-  with_items:
-    - port: 80
-      proto: tcp
-      desc: http
-    - port: 443
-      proto: tcp
-      desc: https
-    - port: 53
-      proto: udp
-      desc: dns
-    - port: 123
-      proto: udp
-      desc: ntp
-
-- name: ufw - enable
+- name: ufw enable
   community.general.ufw:
     state: enabled
 

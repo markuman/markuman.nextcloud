@@ -15,6 +15,21 @@
     nginx_client_header_timeout: 300s
     nginx_ssl_protocols: TLSv1.3
 
+- name: nextcloud nginx config
+  template:
+    dest: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
+    src: nginx_80.j2
+    owner: root
+    group: root
+
+- name: Create a symbolic link
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
+    dest: "/etc/nginx/sites-enabled/{{ nextcloud_fqdn }}"
+    owner: root
+    group: root
+    state: link
+
 - name: Create and Install Cert Using {{ certbot_plugin }} Plugin
   command: "certbot --nginx -d  {{ nextcloud_fqdn }} -m {{ lets_encrypt_mail }} --agree-tos --noninteractive --redirect"
 
@@ -30,14 +45,6 @@
     src: nginx.j2
     owner: root
     group: root
-
-- name: Create a symbolic link
-  ansible.builtin.file:
-    src: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
-    dest: "/etc/nginx/sites-enabled/{{ nextcloud_fqdn }}"
-    owner: root
-    group: root
-    state: link
 
 - name: setup php-fpm
   lineinfile:
