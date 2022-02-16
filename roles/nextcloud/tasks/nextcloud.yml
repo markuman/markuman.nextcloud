@@ -42,3 +42,36 @@
     - previewgenerator widthSizes  --value="256 384"
     - previewgenerator heightSizes --value="256"
     - preview jpeg_quality --value="50"
+
+- name: systemd timer service
+  copy:
+    dest: /etc/systemd/system/nextcloudcron.service
+    content: |
+      [Unit]
+      Description=Nextcloud cron.php job
+
+      [Service]
+      User=www-data
+      ExecStart=/usr/bin/php -f /var/www/nextcloud/cron.php
+      KillMode=process
+
+- name: systemd timer
+  copy:
+    dest: /etc/systemd/system/nextcloudcron.timer
+    content: |
+      [Unit]
+      Description=Run Nextcloud cron.php every 5 minutes
+
+      [Timer]
+      OnBootSec=5min
+      OnUnitActiveSec=5min
+      Unit=nextcloudcron.service
+
+      [Install]
+      WantedBy=timers.target
+
+- name: start and enable systemd timer
+  systemd:
+    name: nextcloudcron.timer
+    status: started
+    enabled: yes
