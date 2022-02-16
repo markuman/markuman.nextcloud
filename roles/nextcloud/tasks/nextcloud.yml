@@ -73,5 +73,5 @@
 - name: start and enable systemd timer
   systemd:
     name: nextcloudcron.timer
-    status: started
+    state: started
     enabled: yes

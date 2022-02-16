@@ -52,4 +52,11 @@
     priv: 'nextcloud.*:ALL'
     state: present
 
-
+- name: mariadb settings
+  lineinfile:
+    name: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '^\[mysqld]'
+    line: "{{ item }}"
+  with_items:
+    - innodb_buffer_pool_size = 512M
+    - max_allowed_packet = 64M
