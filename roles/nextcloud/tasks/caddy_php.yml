@@ -70,11 +70,11 @@
     - regexp: ;opcache.memory_consumption=128
       line: opcache.memory_consumption=128
     - regexp: ;opcache.interned_strings_buffer=8
-      line: opcache.interned_strings_buffer=8
+      line: opcache.interned_strings_buffer=16
     - regexp: ;opcache.max_accelerated_files=10000
       line: opcache.max_accelerated_files=10000
     - regexp: ;opcache.revalidate_freq=2
-      line: opcache.revalidate_freq=1
+      line: opcache.revalidate_freq=60
     - regexp: ;opcache.save_comments=1
       line: opcache.save_comments=1
 
