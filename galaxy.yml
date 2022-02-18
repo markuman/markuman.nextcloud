@@ -1,7 +1,7 @@
 namespace: "markuman"
 description: bring up your nextcloud usage to the next level 🚀
 name: "nextcloud"
-version: "9.0.2"
+version: "9.1.0-dev"
 readme: "README.md"
 authors:
     - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
@@ -10,5 +10,10 @@ license:
 tags:
     - nextcloud
     - collection
+    - devops
+    - installation
+    - setup
 repository: "https://git.osuv.de/m/nextcloud_collection"
 issues: https://github.com/markuman/nextcloud_collection/issues
+dependencies:
+  devsec.hardening: '>=7.14.0'
