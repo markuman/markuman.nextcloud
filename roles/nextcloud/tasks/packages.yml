@@ -18,13 +18,11 @@
     update_cache: yes
     state: latest
     name:
-      - nginx
       - mariadb-server
       - mariadb-client
       - ufw
       - vnstat
       - python3-pymysql
-      - python3-certbot-nginx
       - unzip
       - php-fpm
       - php-gd

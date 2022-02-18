@@ -1,50 +1,30 @@
-- name: determine limit values
-  set_fact:
-    LIMIT1: "{{ ((ansible_memtotal_mb/1024) | round) * ((ansible_processor_vcpus | pow(ansible_processor_vcpus))+1) }}"
-    LIMIT2: "{{ ((ansible_memtotal_mb/1024) | round) * ((ansible_processor_vcpus | pow(ansible_processor_vcpus))+1) * 2 }}"
-    LIMIT3: "{{ ((ansible_memtotal_mb/1024) | round) * ((ansible_processor_vcpus | pow(ansible_processor_vcpus))+1) * 3 }}"
+- name: Install caddy from github releases
+  apt:
+    deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_amd64.deb"
 
-- name: nginx hardening
-  include_role:
-    name: devsec.hardening.nginx_hardening
-  vars:
-    nginx_limit_conn: "default {{ LIMIT2 | int }}"
-    nginx_client_max_body_size: 512M
-    nginx_client_body_buffer_size: 512M
-    nginx_client_body_timeout: 300s
-    nginx_client_header_timeout: 300s
-    nginx_ssl_protocols: TLSv1.3
+- name: change caddy user to www-data
+  lineinfile:
+    dest: /lib/systemd/system/caddy.service
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: User=.*
+      line: User=www-data
+    - regexp: Group=.*
+      line: Group=www-data
 
-- name: nextcloud nginx config
-  template:
-    dest: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
-    src: nginx_80.j2
-    owner: root
-    group: root
-
-- name: Create a symbolic link
+- name: create www/.local directory for caddy
   ansible.builtin.file:
-    src: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
-    dest: "/etc/nginx/sites-enabled/{{ nextcloud_fqdn }}"
-    owner: root
-    group: root
-    state: link
+    path: /var/www/.local
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
 
-- name: Create and Install Cert Using {{ certbot_plugin }} Plugin
-  command: "certbot --nginx -d  {{ nextcloud_fqdn }} -m {{ lets_encrypt_mail }} --agree-tos --noninteractive --redirect"
-
-- name: Set Letsencrypt Cronjob for Certificate Auto Renewal
-  cron:
-    name: letsencrypt_renewal
-    special_time: monthly
-    job: "/usr/bin/certbot renew"
-
-- name: nextcloud nginx config
+- name: caddy config
   template:
-    dest: "/etc/nginx/sites-available/{{ nextcloud_fqdn }}"
-    src: nginx.j2
-    owner: root
-    group: root
+    dest: /etc/caddy/Caddyfile
+    src: caddyfile.j2
 
 - name: setup php-fpm
   lineinfile:
@@ -64,7 +44,13 @@
     - regexp: ;env[TEMP] = /tmp
       line: env[TEMP] = /tmp
     - regexp: pm.max_children.*
-      line: pm.max_children = {{ LIMIT3 | int }}
+      line: pm.max_children = 120
+    - regexp: pm.start_servers.*
+      line: pm.start_servers = 12
+    - regexp: pm.min_spare_servers.*
+      line: pm.min_spare_servers = 6
+    - regexp: pm.max_spare_servers.*
+      line: pm.max_spare_servers = 18
 
 - name: setup php
   lineinfile:
@@ -101,6 +87,8 @@
   with_items:
     - regexp: ;cgi.fix_pathinfo=1
       line: cgi.fix_pathinfo=0
+    - regexp: max_execution_time = 30
+      line: max_execution_time = 300
 
 - name: setup php cli apc
   lineinfile:
@@ -113,5 +101,5 @@
     name: "{{ item }}"
     state: restarted
   with_items:
-    - nginx
     - php7.4-fpm
+    - caddy

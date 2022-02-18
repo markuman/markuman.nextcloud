@@ -32,6 +32,8 @@
     - preview_max_x --value 500
     - preview_max_y --value 500
     - jpeg_quality --value 50
+    - overwriteprotocol --value="https"
+    - htaccess.IgnoreFrontController --value=true
 
 - name: nextcloud app settings
   args:
