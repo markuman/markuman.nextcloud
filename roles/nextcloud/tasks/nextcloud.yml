@@ -20,6 +20,7 @@
   command: "sudo -u www-data php occ app:{{ item }}"
   with_items:
     - enable bruteforcesettings
+    - install twofactor_totp
 
 - name: nextcloud system settings
   args:

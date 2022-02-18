@@ -1,0 +1,48 @@
+{{ nextcloud_fqdn }} {
+        root * /var/www/nextcloud/
+        file_server
+        php_fastcgi unix//run/php/php7.4-fpm.sock {
+                env PATH /bin
+                env front_controller_active true
+        }
+        encode zstd gzip
+
+        redir /.well-known/carddav /remote.php/dav 301
+        redir /.well-known/caldav /remote.php/dav 301
+        redir /.well-known/webfinger /index.php/.well-known/webfinger 301
+        redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
+
+
+        @forbidden {
+          path /.htaccess
+          path /.xml
+          path /3rdparty/*
+          path /README
+          path /config/*
+          path /data/*
+          path /console.php
+          path /db_structure
+          path /lib/*
+          path /occ
+          path /templates/*
+          path /tests/*
+        }
+
+        respond @forbidden 403
+        header {
+                Strict-Transport-Security max-age=31536000;
+        }
+        @phpFiles {
+          path_regexp phpfile ^/(remote|index|public|cron|core/ajax/update|status|getstoragestats|apps/richdocumentscode/proxy|ocs/v1|ocs/v2)\.php
+        }
+        rewrite @phpFiles {http.regexp.phpfile.0}
+
+       log {
+         output file /var/log/caddy/access.log {
+           roll_size 5mb
+           roll_keep 5
+           roll_keep_for 5d
+         }
+       }
+
+}
