@@ -44,13 +44,13 @@
     - regexp: ;env[TEMP] = /tmp
       line: env[TEMP] = /tmp
     - regexp: pm.max_children.*
-      line: pm.max_children = 120
+      line: pm.max_children = "{{ pm.max_children }}"
     - regexp: pm.start_servers.*
-      line: pm.start_servers = 12
+      line: pm.start_servers = "{{ pm.start_servers }}"
     - regexp: pm.min_spare_servers.*
-      line: pm.min_spare_servers = 6
+      line: pm.min_spare_servers = "{{ pm.min_spare_servers }}"
     - regexp: pm.max_spare_servers.*
-      line: pm.max_spare_servers = 18
+      line: pm.max_spare_servers = "{{ pm.max_spare_servers }}"
 
 - name: setup php
   lineinfile:
@@ -70,7 +70,7 @@
     - regexp: ;opcache.memory_consumption=128
       line: opcache.memory_consumption=128
     - regexp: ;opcache.interned_strings_buffer=8
-      line: opcache.interned_strings_buffer=16
+      line: opcache.interned_strings_buffer="{{ opcache.interned_strings_buffer }}"
     - regexp: ;opcache.max_accelerated_files=10000
       line: opcache.max_accelerated_files=10000
     - regexp: ;opcache.revalidate_freq=2
