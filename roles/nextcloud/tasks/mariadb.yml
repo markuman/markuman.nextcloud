@@ -58,5 +58,5 @@
     insertafter: '^\[mysqld]'
     line: "{{ item }}"
   with_items:
-    - innodb_buffer_pool_size = 512M
+    - innodb_buffer_pool_size = "{{ innodb_buffer_pool_size }}"
     - max_allowed_packet = 64M
