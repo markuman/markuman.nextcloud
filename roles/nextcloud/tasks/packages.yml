@@ -44,7 +44,7 @@
 - name: enable ipv6 for ufw
   lineinfile:
     name: /etc/default/ufw
-    regexp: ^IPV6.*
+    regexp: IPV6=no
     line: IPV6=yes
   notify:
     - reload ufw
@@ -61,7 +61,6 @@
     - ufw allow out 53/udp
     - ufw allow out 123/udp
     - ufw allow out 993
-    - ufw allow out 587
     - ufw allow out 465
 
 - name: ufw enable
