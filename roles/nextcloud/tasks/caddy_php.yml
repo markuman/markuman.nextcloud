@@ -44,13 +44,13 @@
     - regexp: ;env[TEMP] = /tmp
       line: env[TEMP] = /tmp
     - regexp: pm.max_children.*
-      line: pm.max_children = "{{ pm.max_children }}"
+      line: pm.max_children = "{{ php_fpm.max_children }}"
     - regexp: pm.start_servers.*
-      line: pm.start_servers = "{{ pm.start_servers }}"
+      line: pm.start_servers = "{{ php_fpm.start_servers }}"
     - regexp: pm.min_spare_servers.*
-      line: pm.min_spare_servers = "{{ pm.min_spare_servers }}"
+      line: pm.min_spare_servers = "{{ php_fpm.min_spare_servers }}"
     - regexp: pm.max_spare_servers.*
-      line: pm.max_spare_servers = "{{ pm.max_spare_servers }}"
+      line: pm.max_spare_servers = "{{ php_fpm.max_spare_servers }}"
 
 - name: setup php
   lineinfile:

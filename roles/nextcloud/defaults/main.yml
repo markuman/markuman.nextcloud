@@ -5,13 +5,15 @@ nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
 
 # php-fpm
-pm.max_children: 120
-pm.start_servers: 12
-pm.min_spare_servers: 6
-pm.max_spare_servers: 18
+php_fpm:
+  max_children: 120
+  start_servers: 12
+  min_spare_servers: 6
+  max_spare_servers: 18
 
 # php
-opcache.interned_strings_buffer: 16
+opcache:
+  interned_strings_buffer: 16
 
 # mariadb
 innodb_buffer_pool_size: 512M
