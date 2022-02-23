@@ -1,32 +1,6 @@
-- name: Install caddy from github releases
-  apt:
-    deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_amd64.deb"
-
-- name: change caddy user to www-data
-  lineinfile:
-    dest: /lib/systemd/system/caddy.service
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - regexp: User=.*
-      line: User=www-data
-    - regexp: Group=.*
-      line: Group=www-data
-
-- name: create www/.local directory for caddy
-  ansible.builtin.file:
-    path: /var/www/.local
-    state: directory
-    owner: www-data
-    group: www-data
-    mode: '0755'
-
-- name: caddy config
-  template:
-    dest: /etc/caddy/Caddyfile
-    src: caddyfile.j2
-
 - name: setup php-fpm
+  notify:
+    - restart php-fpm
   lineinfile:
     dest: /etc/php/7.4/fpm/pool.d/www.conf
     state: present
@@ -53,6 +27,8 @@
       line: pm.max_spare_servers = "{{ php_fpm.max_spare_servers }}"
 
 - name: setup php
+  notify:
+    - restart php-fpm
   lineinfile:
     dest: /etc/php/7.4/fpm/php.ini
     state: present
@@ -79,6 +55,8 @@
       line: opcache.save_comments=1
 
 - name: setup php cli
+  notify:
+    - restart php-fpm
   lineinfile:
     dest: /etc/php/7.4/cli/php.ini
     state: present
@@ -91,15 +69,9 @@
       line: max_execution_time = 300
 
 - name: setup php cli apc
+  notify:
+    - restart php-fpm
   lineinfile:
     dest: /etc/php/7.4/cli/php.ini
     state: present
     line: apc.enable_cli=1
-
-- name: restart services
-  systemd:
-    name: "{{ item }}"
-    state: restarted
-  with_items:
-    - php7.4-fpm
-    - caddy

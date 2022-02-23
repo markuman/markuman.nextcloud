@@ -1,3 +1,13 @@
 - name: reload ufw
   community.general.ufw:
     state: reloaded
+
+- name: restart caddy
+  systemd:
+    name: caddy
+    state: restarted
+
+- name: restart php-fpm
+  systemd:
+    name: php7.4-fpm
+    state: restarted
