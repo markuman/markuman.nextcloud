@@ -11,3 +11,8 @@
   systemd:
     name: php7.4-fpm
     state: restarted
+
+- name: restart coturn
+  systemd:
+    name: coturn
+    state: restarted

@@ -1,0 +1,46 @@
+- name: install coturn
+  apt:
+    update_cache: yes
+    state: latest
+    name:
+      - coturn
+
+- name: random coturn secret
+  set_fact:
+    coturn_secret: "{{ lookup('community.general.random_string', length=32, override_special=hex_chars) }}"
+  vars:
+    hex_chars: '0123456789abcdef'
+
+- name: coturn config
+  notify:
+    - restart coturn
+  copy:
+    dest: /mnt/data/coturn/turnserver.conf
+    content: |
+      listening-port=3478
+      listening-ip={{ lookup('dig', nextcloud_fqdn, 'qtype=A') }}
+      fingerprint
+      use-auth-secret
+      static-auth-secret={{ coturn_secret }}
+      realm={{ nextcloud_fqdn }}
+      total-quota=0
+      bps-capacity=0
+      no-tls
+      no-dtls
+      stale-nonce
+      no-loopback-peers
+      no-multicast-peers
+      proc-user=turnserver
+      proc-group=turnserver
+      syslog
+
+- name: enable turnserver
+  lineinfile:
+    name: /etc/default/coturn
+    regexp: "#TURNSERVER_ENABLED=0"
+    line: TURNSERVER_ENABLED=1
+
+- name: enable coturn for talk
+  args:
+    chdir: /var/www/nextcloud/
+  command: "sudo -u www-data php occ talk:turn:add {{ nextcloud_fqdn }} udp,tcp --secret={{ coturn_secret }}"

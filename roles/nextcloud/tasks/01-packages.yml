@@ -56,12 +56,16 @@
     - ufw allow out 22
     - ufw allow 80
     - ufw allow 443
+    - ufw allow 3478/udp
+    - ufw allow 3478
     - ufw allow out 80
     - ufw allow out 443
     - ufw allow out 53/udp
     - ufw allow out 123/udp
     - ufw allow out 993
     - ufw allow out 465
+    - ufw allow out 3478/udp
+    - ufw allow out 3478
 
 - name: ufw enable
   community.general.ufw:

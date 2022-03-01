@@ -4,3 +4,4 @@
 - include_tasks: 04-php.yml
 - include_tasks: 05-caddy.yml
 - include_tasks: 06-nextcloud.yml
+- include_tasks: 07-coturn.yml
