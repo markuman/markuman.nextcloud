@@ -22,7 +22,7 @@ No ssh required.
 
 ## Documentation / Usage
 
-* [Wiki](https://git.osuv.de/m/nextcloud_collection/wiki/Home)
+* [Wiki](https://git.osuv.de/ansible_collections/markuman.nextcloud/wiki)
 * `ansible-doc <module>`
     * e.g. `ansible-doc markuman.nextcloud.file`
 
