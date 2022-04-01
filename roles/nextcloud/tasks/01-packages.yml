@@ -1,0 +1,76 @@
+- name: set hostname
+  hostname:
+    name: "{{ nextcloud_fqdn.split('.')[0] }}"
+
+- name: complete /etc/hosts
+  lineinfile:
+    name: /etc/hosts
+    line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
+
+- name: uprade all packages first
+  apt:
+    update_cache: yes
+    state: latest
+    upgrade: yes
+
+- name: install php and mariadb
+  apt:
+    update_cache: yes
+    state: latest
+    name:
+      - mariadb-server
+      - mariadb-client
+      - ufw
+      - vnstat
+      - python3-pymysql
+      - unzip
+      - php-fpm
+      - php-gd
+      - php-mysql
+      - php-curl
+      - php-xml
+      - php-zip
+      - php-intl
+      - php-mbstring
+      - php-bz2
+      - php-json
+      - php-apcu
+      - php-imagick
+      - php-gmp
+      - php-bcmath
+      - imagemagick
+      - libmagickcore-6.q16-6-extra
+
+- name: enable ipv6 for ufw
+  lineinfile:
+    name: /etc/default/ufw
+    regexp: IPV6=no
+    line: IPV6=yes
+  notify:
+    - reload ufw
+
+- name: ufw rules
+  command: "{{ item }}"
+  with_items:
+    - ufw limit ssh comment "incomming ssh with ratelimit"
+    - ufw allow out 22 comment "outgoing ssh"
+    - ufw allow 80 comment "incomming http for caddy"
+    - ufw allow 443 comment "incomming https for caddy"
+    - ufw allow 3478/udp comment "incomming for coturn"
+    - ufw allow 3478 comment "incomming for coturn"
+    - ufw allow out 80 comment "outgoing http"
+    - ufw allow out 443 comment "outgoing https"
+    - ufw allow out 53/udp comment "outgoing for dns"
+    - ufw allow out 123/udp comment "outgoing for ntp"
+    - ufw allow out 993 comment "outgoing imap ssl"
+    - ufw allow out 465 comment "outgoing smtp ssl"
+    - ufw allow out 3478/udp comment "outgoing coturn"
+    - ufw allow out 3478 comment "outgoing coturn"
+
+- name: ufw enable
+  community.general.ufw:
+    state: enabled
+
+- name: os hardening
+  include_role:
+    name: devsec.hardening.os_hardening

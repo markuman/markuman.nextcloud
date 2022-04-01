@@ -1,0 +1,19 @@
+nextcloud_version: 23.0.2
+caddy_version: 2.4.6
+
+nextcloud_db_name: nextcloud
+nextcloud_db_user: nextcloud
+
+# php-fpm
+php_fpm:
+  max_children: 120
+  start_servers: 12
+  min_spare_servers: 6
+  max_spare_servers: 18
+
+# php
+opcache:
+  interned_strings_buffer: 16
+
+# mariadb
+innodb_buffer_pool_size: 512M

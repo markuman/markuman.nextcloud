@@ -1,0 +1,62 @@
+- name: init root user
+  command: >
+    sudo mysql -uroot -e "
+    UPDATE mysql.user SET plugin='mysql_native_password';
+    SET PASSWORD FOR root@localhost = PASSWORD('{{ mariadb_root_password }}');
+    FLUSH PRIVILEGES;"
+
+- name: root save my.cnf
+  ini_file:
+    owner: root
+    path: "/root/.my.cnf"
+    section: client
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: '0600'
+  with_items:
+    - option: user
+      value: root
+    - option: password
+      value: "{{ mariadb_root_password }}"
+
+- include_role:
+    name: devsec.hardening.mysql_hardening
+  vars:
+    mysql_root_password: "{{ mariadb_root_password }}"
+
+- name: save my.cnf
+  ini_file:
+    owner: "{{ ubuntu_nextcloud_user }}"
+    path: "/home/{{ ubuntu_nextcloud_user }}/.my.cnf"
+    section: client
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: '0600'
+  with_items:
+    - option: user
+      value: "{{ nextcloud_db_user }}"
+    - option: password
+      value: "{{ nextcloud_db_password }}"
+
+- name: create nextcloud db
+  community.mysql.mysql_db:
+    name: nextcloud
+    encoding: utf8mb4
+    collation: utf8mb4_general_ci
+    state: present
+
+- name: add nextcloud mysql user
+  community.mysql.mysql_user:
+    name: nextcloud
+    password: "{{ nextcloud_db_password }}"
+    priv: 'nextcloud.*:ALL'
+    state: present
+
+- name: mariadb settings
+  lineinfile:
+    name: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '^\[mysqld]'
+    line: "{{ item }}"
+  with_items:
+    - innodb_buffer_pool_size = "{{ innodb_buffer_pool_size }}"
+    - max_allowed_packet = 64M

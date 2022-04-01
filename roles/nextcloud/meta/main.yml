@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Markus Bergholz
+  description: Ansible role to install nextcloud on a dedicated Ubuntu Server
+
+  license: license (BSD)
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+
+  galaxy_tags:
+    - nextcloud
+
+dependencies: []

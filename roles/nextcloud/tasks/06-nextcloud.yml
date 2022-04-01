@@ -1,0 +1,80 @@
+- name: get nextcloud itself
+  unarchive:
+    src: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "/var/www/"
+    remote_src: yes
+    owner: www-data
+    group: www-data
+
+- name: install nextcloud
+  args:
+    chdir: /var/www/nextcloud/
+  command: >
+    sudo -u www-data php occ  maintenance:install --database
+    "mysql" --database-name "nextcloud"  --database-user "nextcloud" --database-pass
+    "{{ nextcloud_db_password }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_password }}"
+
+- name: install and enable nextcloud apps
+  args:
+    chdir: /var/www/nextcloud/
+  command: "sudo -u www-data php occ app:{{ item }}"
+  with_items:
+    - enable bruteforcesettings
+    - install twofactor_totp
+
+- name: nextcloud system settings
+  args:
+    chdir: /var/www/nextcloud/
+  command: "sudo -u www-data php occ config:system:set {{ item }}"
+  with_items:
+    - "trusted_domains 2 --value={{ nextcloud_fqdn }}"
+    - memcache.local --value='\OC\Memcache\APCu'
+    - overwrite.cli.url --value={{ nextcloud_fqdn }}
+    - preview_max_x --value 500
+    - preview_max_y --value 500
+    - jpeg_quality --value 50
+    - overwriteprotocol --value="https"
+    - htaccess.IgnoreFrontController --value=true
+
+- name: nextcloud app settings
+  args:
+    chdir: /var/www/nextcloud/
+  command: "sudo -u www-data php occ config:app:set {{ item }}"
+  with_items:
+    - previewgenerator squareSizes --value="32 256"
+    - previewgenerator widthSizes  --value="256 384"
+    - previewgenerator heightSizes --value="256"
+    - preview jpeg_quality --value="50"
+
+- name: systemd timer service
+  copy:
+    dest: /etc/systemd/system/nextcloudcron.service
+    content: |
+      [Unit]
+      Description=Nextcloud cron.php job
+
+      [Service]
+      User=www-data
+      ExecStart=/usr/bin/php -f /var/www/nextcloud/cron.php
+      KillMode=process
+
+- name: systemd timer
+  copy:
+    dest: /etc/systemd/system/nextcloudcron.timer
+    content: |
+      [Unit]
+      Description=Run Nextcloud cron.php every 5 minutes
+
+      [Timer]
+      OnBootSec=5min
+      OnUnitActiveSec=5min
+      Unit=nextcloudcron.service
+
+      [Install]
+      WantedBy=timers.target
+
+- name: start and enable systemd timer
+  systemd:
+    name: nextcloudcron.timer
+    state: started
+    enabled: yes

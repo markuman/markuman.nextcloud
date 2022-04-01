@@ -1,0 +1,50 @@
+- name: add ubuntu nextcloud system user
+  ansible.builtin.user:
+    name: "{{ ubuntu_nextcloud_user }}"
+    shell: /bin/bash
+    comment: Ubuntu Nextcloud System User
+    password_expire_max: 99999
+    groups:
+      - www-data
+      - sudo
+
+- name: set authorized_keys file for ubuntu nextcloud user
+  ansible.posix.authorized_key:
+    user: "{{ ubuntu_nextcloud_user }}"
+    state: present
+    manage_dir: yes
+    key: "{{ ubuntu_nextcloud_user_ssh_key_location }}"
+
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo	ALL=(ALL:ALL) ALL'
+    line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: ssh hardening
+  include_role:
+    name: devsec.hardening.ssh_hardening
+  vars:
+    ssh_allow_users: "{{ ubuntu_nextcloud_user }}"
+    ssh_max_auth_retries: 5
+    # mozilla ssh_scan: Modern - with just ETM (encrypt-then-mac) macs
+    # https://github.com/mozilla/ssh_scan/blob/master/config/policies/just_etm_macs.yaml
+    ssh_kex:
+      - curve25519-sha256@libssh.org
+      - diffie-hellman-group-exchange-sha256
+      - ecdh-sha2-nistp521
+      - ecdh-sha2-nistp384
+      - ecdh-sha2-nistp256
+    ssh_macs:
+      - hmac-sha2-512-etm@openssh.com
+      - hmac-sha2-256-etm@openssh.com
+      - umac-128-etm@openssh.com
+    ssh_ciphers:
+      - chacha20-poly1305@openssh.com
+      - aes256-gcm@openssh.com
+      - aes128-gcm@openssh.com
+      - aes256-ctr
+      - aes192-ctr
+      - aes128-ctr

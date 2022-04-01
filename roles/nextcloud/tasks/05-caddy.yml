@@ -1,0 +1,29 @@
+- name: Install caddy from github releases
+  apt:
+    deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_amd64.deb"
+
+- name: change caddy user to www-data
+  lineinfile:
+    dest: /lib/systemd/system/caddy.service
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: User=.*
+      line: User=www-data
+    - regexp: Group=.*
+      line: Group=www-data
+
+- name: create www/.local directory for caddy
+  ansible.builtin.file:
+    path: /var/www/.local
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: caddy config
+  template:
+    dest: /etc/caddy/Caddyfile
+    src: caddyfile.j2
+  notify:
+    - restart caddy

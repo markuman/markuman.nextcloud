@@ -1,0 +1,77 @@
+- name: setup php-fpm
+  notify:
+    - restart php-fpm
+  lineinfile:
+    dest: /etc/php/7.4/fpm/pool.d/www.conf
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: ;env[HOSTNAME] = $HOSTNAME
+      line: env[HOSTNAME] = $HOSTNAME
+    - regexp: ;env[PATH] = /usr/local/bin:/usr/bin:/bin
+      line: env[PATH] = /usr/local/bin:/usr/bin:/bin
+    - regexp: ;env[TMP] = /tmp
+      line: env[TMP] = /tmp
+    - regexp: ;env[TMPDIR] = /tmp
+      line: env[TMPDIR] = /tmp
+    - regexp: ;env[TEMP] = /tmp
+      line: env[TEMP] = /tmp
+    - regexp: pm.max_children.*
+      line: pm.max_children = "{{ php_fpm.max_children }}"
+    - regexp: pm.start_servers.*
+      line: pm.start_servers = "{{ php_fpm.start_servers }}"
+    - regexp: pm.min_spare_servers.*
+      line: pm.min_spare_servers = "{{ php_fpm.min_spare_servers }}"
+    - regexp: pm.max_spare_servers.*
+      line: pm.max_spare_servers = "{{ php_fpm.max_spare_servers }}"
+
+- name: setup php
+  notify:
+    - restart php-fpm
+  lineinfile:
+    dest: /etc/php/7.4/fpm/php.ini
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: ;cgi.fix_pathinfo=1
+      line: cgi.fix_pathinfo=0
+    - regexp: memory_limit = 128M
+      line: memory_limit = 1G
+    - regexp: ;opcache.enable=1
+      line: opcache.enable=1
+    - regexp: ;opcache.enable_cli=0
+      line: opcache.enable_cli=1
+    - regexp: ;opcache.memory_consumption=128
+      line: opcache.memory_consumption=128
+    - regexp: ;opcache.interned_strings_buffer=8
+      line: opcache.interned_strings_buffer="{{ opcache.interned_strings_buffer }}"
+    - regexp: ;opcache.max_accelerated_files=10000
+      line: opcache.max_accelerated_files=10000
+    - regexp: ;opcache.revalidate_freq=2
+      line: opcache.revalidate_freq=60
+    - regexp: ;opcache.save_comments=1
+      line: opcache.save_comments=1
+
+- name: setup php cli
+  notify:
+    - restart php-fpm
+  lineinfile:
+    dest: /etc/php/7.4/cli/php.ini
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: ;cgi.fix_pathinfo=1
+      line: cgi.fix_pathinfo=0
+    - regexp: max_execution_time = 30
+      line: max_execution_time = 300
+
+- name: setup php cli apc
+  notify:
+    - restart php-fpm
+  lineinfile:
+    dest: /etc/php/7.4/cli/php.ini
+    state: present
+    line: apc.enable_cli=1
