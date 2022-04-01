@@ -29,3 +29,14 @@ releases:
     - 26-sha256.yml
     - 9.0.2.yml
     release_date: '2022-02-05'
+  9.1.1:
+    changes:
+      minor_changes:
+      - add install role ``markuman.nextcloud`` to distribute a turnkey nextcloud
+        on Ubuntu 20.04 LTS.
+      release_summary: This release of the ``markuman.nextcloud`` collection includes
+        a turnkey-ready install role for Ubuntu 20.04 LTS.
+    fragments:
+    - 24-install-role.yml
+    - 9.1.1.yml
+    release_date: '2022-04-01'

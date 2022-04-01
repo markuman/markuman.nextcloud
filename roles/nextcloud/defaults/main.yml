@@ -1,4 +1,4 @@
-nextcloud_version: 23.0.2
+nextcloud_version: 23.0.3
 caddy_version: 2.4.6
 
 nextcloud_db_name: nextcloud

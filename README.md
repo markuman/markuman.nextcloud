@@ -1,7 +1,6 @@
 # Ansible Nextcloud Collection
 
-Ansible Nextcloud Collection - is not meant to install nor to maintain your nextcloud itself.  
-It's meant to bring up your nextcloud usage to the next level 🚀  
+Ansible Nextcloud Collection - that brings up your nextcloud usage to the next level 🚀  
 No ssh required.
 
 ## Features
@@ -15,7 +14,7 @@ No ssh required.
 * 🔑 passwords
     * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
-
+* `markuman.nextcloud` installation role - securely setup Nextcloud.
 
 ## install
 
