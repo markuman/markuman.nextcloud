@@ -15,7 +15,7 @@
   notify:
     - restart coturn
   copy:
-    dest: /mnt/data/coturn/turnserver.conf
+    dest: /etc/turnserver.conf
     content: |
       listening-port=3478
       listening-ip={{ lookup('dig', nextcloud_fqdn, 'qtype=A') }}
