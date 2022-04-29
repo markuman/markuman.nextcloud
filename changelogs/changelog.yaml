@@ -40,3 +40,17 @@ releases:
     - 24-install-role.yml
     - 9.1.1.yml
     release_date: '2022-04-01'
+  9.2.0:
+    changes:
+      bugfixes:
+      - coturn config location was wrong and results in error.
+      minor_changes:
+      - bump caddy version to 2.5.0
+      - bump nextcloud version to 23.0.4
+      - make coturn/talk installation controllable via boolean `install_talk` variable.
+      release_summary: 'This is the minor release of the ``markuman.nextcloud`` collection.
+
+        This release affects only the installation role ``markuman.nextcloud.nextcloud``.'
+    fragments:
+    - 9.2.0.yml
+    release_date: '2022-04-29'

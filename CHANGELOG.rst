@@ -5,6 +5,27 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v9.2.0
+======
+
+Release Summary
+---------------
+
+This is the minor release of the ``markuman.nextcloud`` collection.
+This release affects only the installation role ``markuman.nextcloud.nextcloud``.
+
+Minor Changes
+-------------
+
+- bump caddy version to 2.5.0
+- bump nextcloud version to 23.0.4
+- make coturn/talk installation controllable via boolean `install_talk` variable.
+
+Bugfixes
+--------
+
+- coturn config location was wrong and results in error.
+
 v9.1.1
 ======
 

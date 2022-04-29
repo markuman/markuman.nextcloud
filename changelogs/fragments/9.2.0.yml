@@ -1,6 +1,0 @@
-bugfixes:
-  - coturn config location was wrong and results in error.
-minor_changes:
-  - make coturn/talk installation controllable via boolean `install_talk` variable.
-  - bump nextcloud version to 23.0.4
-  - bump caddy version to 2.5.0
