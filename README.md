@@ -1,7 +1,8 @@
 # Ansible Nextcloud Collection
 
 Ansible Nextcloud Collection - that brings up your nextcloud usage to the next level 🚀  
-No ssh required.
+  * No ssh required for module usage
+  * Install role requires ssh
 
 ## Features
 
@@ -14,7 +15,7 @@ No ssh required.
 * 🔑 passwords
     * `lookup` plugin for [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` module - create, update and delete [passwords](https://apps.nextcloud.com/apps/passwords)
-* `markuman.nextcloud` installation role - securely setup Nextcloud.
+* `markuman.nextcloud.nextcloud` installation role - securely setup Nextcloud.
 
 ## install
 
@@ -34,3 +35,8 @@ No ssh required.
 | https://gitlab.com/markuman/markuman.nextcloud | push mirror, merge-requests and Issues |
 | https://github.com/markuman/markuman.nextcloud | push mirror, pull-requests and Issues |
 
+
+| Collection Version | Supported OS | Nextcloud Version | Collection EOL |
+| --- | --- | --- | --- |
+| 9 | Ubuntu 20.04 | 23 | 2022.12 |
+| 10 | Ubuntu 22.04 | >= 24 | TBA |
