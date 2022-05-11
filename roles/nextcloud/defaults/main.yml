@@ -1,5 +1,5 @@
 nextcloud_version: 23.0.4
-caddy_version: 2.5.0
+caddy_version: 2.5.1
 
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud

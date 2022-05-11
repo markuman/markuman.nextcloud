@@ -63,3 +63,11 @@ releases:
     fragments:
     - 9.2.1.yml
     release_date: '2022-05-11'
+  9.2.2:
+    changes:
+      minor_changes:
+      - nextcloud install role - dump caddy version to 2.5.1
+      release_summary: bugfix release of ``markuman.nextcloud``.
+    fragments:
+    - 9.2.2.yml
+    release_date: '2022-05-11'
