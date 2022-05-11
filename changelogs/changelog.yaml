@@ -54,3 +54,12 @@ releases:
     fragments:
     - 9.2.0.yml
     release_date: '2022-04-29'
+  9.2.1:
+    changes:
+      bugfixes:
+      - nextcloud installation role - add missing mail configuration in caddy web
+        server.
+      release_summary: Bugfix release of ``markuman.nextcloud``.
+    fragments:
+    - 9.2.1.yml
+    release_date: '2022-05-11'
