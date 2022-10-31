@@ -43,8 +43,16 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
-import yaml
 import copy
+import traceback
+
+try:
+    import yaml
+    HAS_YAML_LIB = True
+except ImportError:
+    HAS_YAML_LIB = False
+    IMPORT_ERROR = traceback.format_exc()
+
 
 def diff_handler(state_data, state):
     new_state = copy.deepcopy(state_data)
@@ -53,6 +61,7 @@ def diff_handler(state_data, state):
         before=yaml.safe_dump(state_data),
         after=yaml.safe_dump(new_state)
     )
+
 
 def main():
     module = AnsibleModule(
@@ -77,13 +86,11 @@ def main():
 
             if not module.check_mode:
                 r, change = nc.put("ocs/v2.php/cloud/users/{USER}/{STATE}".format(USER=username, STATE=state))
-        
+
         retval, diff = diff_handler(current_state, state)
         module.exit_json(changed=change, diff=diff, user_data=retval)
     else:
-        module.exit_json(changed=change, diff={'before':{},'after':{}}, user_data={})
-    
-
+        module.exit_json(changed=change, diff={'before': {}, 'after': {}}, user_data={})
 
 
 if __name__ == '__main__':
