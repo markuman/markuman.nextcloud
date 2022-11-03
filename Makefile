@@ -15,7 +15,7 @@ remove: ## remove collection localy
 	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/nextcloud
 
 sanity: ## sanity checks
-	ansible-test sanity --python 3.10 --docker default
+	ansible-test sanity --python 3.10
 
 syntax: ## test compile
 	python -m py_compile plugins/lookup/*.py

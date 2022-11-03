@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = '''
-module: user_info
+module: user
 short_description: administrate nextcloud users
 description:
   - disable or enable users
@@ -21,12 +21,10 @@ options:
     required: true
     type: str
     aliases: ['user_id']
-  state:
+  enable:
     description:
-      - State of the Nextcloud User
-    required: true
-    type: str
-    choises: ['enable', 'disable']
+      - Wether a user should be enabled or disabled.
+    type: bool
 extends_documentation_fragment:
   - markuman.nextcloud.nextcloud.connectivity
 notes:
@@ -56,7 +54,7 @@ except ImportError:
 
 def diff_handler(state_data, state):
     new_state = copy.deepcopy(state_data)
-    new_state['enabled'] = state == 'enabled'
+    new_state['enabled'] = state
     return new_state, dict(
         before=yaml.safe_dump(state_data),
         after=yaml.safe_dump(new_state)
@@ -68,26 +66,29 @@ def main():
         supports_check_mode=True,
         argument_spec=parameter_spects(dict(
             username=dict(required=True, type='str', aliases=['user_id']),
-            state=dict(required=True, type='str', choises=['enable', 'disable'])
+            enable=dict(type='bool')
         ))
     )
 
     nc = NextcloudHandler(module.params, module.fail_json)
     username = module.params.get('username')
-    state = module.params.get('state')
+    enable = module.params.get('enable')
     change = False
 
     retval = nc.get(f'/ocs/v1.php/cloud/users/{username}').json()
     current_state = retval.get('ocs', {}).get('data')
 
-    if current_state:
-        if (state == 'enable') is not current_state.get('enabled'):
+    if current_state and enable is not None:
+        if enable is not current_state.get('enabled'):
             change = True
+            state = 'disable'
+            if enable:
+                state = 'enable'
 
             if not module.check_mode:
                 r, change = nc.put("ocs/v2.php/cloud/users/{USER}/{STATE}".format(USER=username, STATE=state))
 
-        retval, diff = diff_handler(current_state, state)
+        retval, diff = diff_handler(current_state, enable)
         module.exit_json(changed=change, diff=diff, user_data=retval)
     else:
         module.exit_json(changed=change, diff={'before': {}, 'after': {}}, user_data={})

@@ -5,4 +5,4 @@
 - name: verify nextcloud version
   assert:
     that:
-      - out.nextcloud.version.major == 21
+      - out.nextcloud.version.major >= 24
