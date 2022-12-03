@@ -9,7 +9,7 @@ build: ## build collection localy
 	ansible-galaxy collection build -f
 
 install: ## install collection localy
-	ansible-galaxy collection install markuman*
+	ansible-galaxy collection install -f markuman*
 
 remove: ## remove collection localy
 	rm -rf markuman* ~/.ansible/collections/ansible_collections/markuman/nextcloud
