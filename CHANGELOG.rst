@@ -5,6 +5,20 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v9.3.0
+======
+
+Release Summary
+---------------
+
+Minor sanity fixes and update version for the install role.
+This will also be the last 9.x.x release.
+
+New Modules
+-----------
+
+- user - administrate nextcloud users
+
 v9.2.2
 ======
 

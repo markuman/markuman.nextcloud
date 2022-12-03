@@ -71,3 +71,15 @@ releases:
     fragments:
     - 9.2.2.yml
     release_date: '2022-05-11'
+  9.3.0:
+    changes:
+      release_summary: 'Minor sanity fixes and update version for the install role.
+
+        This will also be the last 9.x.x release.'
+    fragments:
+    - 930.yml
+    modules:
+    - description: administrate nextcloud users
+      name: user
+      namespace: ''
+    release_date: '2022-12-03'
