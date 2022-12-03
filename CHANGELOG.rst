@@ -5,6 +5,32 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v9.2.2
+======
+
+Release Summary
+---------------
+
+bugfix release of ``markuman.nextcloud``.
+
+Minor Changes
+-------------
+
+- nextcloud install role - dump caddy version to 2.5.1
+
+v9.2.1
+======
+
+Release Summary
+---------------
+
+Bugfix release of ``markuman.nextcloud``.
+
+Bugfixes
+--------
+
+- nextcloud installation role - add missing mail configuration in caddy web server.
+
 v9.2.0
 ======
 

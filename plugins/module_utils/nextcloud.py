@@ -140,11 +140,18 @@ class NextcloudHandler:
         else:
             self.exit.status_code_error(r.status_code)
 
-    def put(self, path, src):
-        r = requests.put(
-            '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
-            data=open(src, 'rb'), auth=(self.USER, self.TOKEN), verify=self.ssl
-        )
+    def put(self, path, src=None):
+
+        if src:
+            r = requests.put(
+                '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
+                data=open(src, 'rb'), auth=(self.USER, self.TOKEN), verify=self.ssl
+            )
+        else:
+            r = requests.put(
+                '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
+                headers=self.headers, auth=(self.USER, self.TOKEN), verify=self.ssl
+            )
 
         if r.status_code in [200, 201, 204]:
             return r, True

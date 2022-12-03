@@ -7,7 +7,7 @@
     - name: start nextcloud container
       community.docker.docker_container:
         name: nextcloudintergrationtest
-        image: "nextcloud:{{ nextcloud_version | default('21-apache') }}"
+        image: "nextcloud:{{ nextcloud_version | default('24-apache') }}"
         state: started
         auto_remove: yes
         recreate: yes
@@ -94,16 +94,6 @@
       api_token: "{{ NEXTCLOUD_TOKEN }}"
       ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.password_info:
-      host: "{{ NEXTCLOUD_HOST }}"
-      user: "{{ NEXTCLOUD_USER }}"
-      api_token: "{{ NEXTCLOUD_TOKEN }}"
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.passwords:
-      host: "{{ NEXTCLOUD_HOST }}"
-      user: "{{ NEXTCLOUD_USER }}"
-      api_token: "{{ NEXTCLOUD_TOKEN }}"
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.generate_password:
       host: "{{ NEXTCLOUD_HOST }}"
       user: "{{ NEXTCLOUD_USER }}"
       api_token: "{{ NEXTCLOUD_TOKEN }}"

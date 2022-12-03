@@ -6,12 +6,13 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 DOCUMENTATION = '''
-    author: Markus Bergholz
-    name: talk
-    type: notification
-    short_description: write playbook output to nextcloud talk
-    description:
-      - This callback writes playbook output to a nextcloud talk conversation
+author:
+  - "Markus Bergholz (@markuman)"
+name: talk
+type: notification
+short_description: write playbook output to nextcloud talk
+description:
+    - This callback writes playbook output to a nextcloud talk conversation
 '''
 
 import os
