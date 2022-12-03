@@ -98,11 +98,6 @@
       user: "{{ NEXTCLOUD_USER }}"
       api_token: "{{ NEXTCLOUD_TOKEN }}"
       ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.password:
-      host: "{{ NEXTCLOUD_HOST }}"
-      user: "{{ NEXTCLOUD_USER }}"
-      api_token: "{{ NEXTCLOUD_TOKEN }}"
-      ssl_mode: "{{ SSL_MODE }}"
     markuman.nextcloud.user_info:
       host: "{{ NEXTCLOUD_HOST }}"
       user: "{{ NEXTCLOUD_USER }}"

@@ -1,10 +1,8 @@
+# -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-
-from ansible.errors import AnsibleError
-from ansible.plugins.lookup import LookupBase
-
-from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 
 
 ANSIBLE_METADATA = {
@@ -14,14 +12,14 @@ ANSIBLE_METADATA = {
 }
 
 DOCUMENTATION = """
-lookup: markuman.nextcloud.generate_password
+name: generate_password
 author:
-    - Markus Bergholz <markuman@gmail.com>
+  - "Markus Bergholz (@markuman)"
 version_added: 7.0.0
 short_description: fetch generated password from nextcloud password app
 description:
-    - fetch generated password from nextcloud password app
-    - See U(https://apps.nextcloud.com/apps/passwords)
+  - fetch generated password from nextcloud password app
+  - See U(https://apps.nextcloud.com/apps/passwords)
 options:
   _terms:
     description: Label of the requested password.
@@ -43,6 +41,10 @@ EXAMPLES = """
   debug:
     var: lookup('markuman.nextcloud.generate_password', 'dokuwiki')
 """
+
+from ansible.errors import AnsibleError
+from ansible.plugins.lookup import LookupBase
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 
 
 class LookupModule(LookupBase):
