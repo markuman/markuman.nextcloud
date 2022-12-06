@@ -49,12 +49,6 @@ from ansible.plugins.lookup import LookupBase
 from ansible.errors import AnsibleError
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 
-try:
-    import requests
-    HAS_REQUESTS_LIB = True
-except ImportError:
-    HAS_REQUESTS_LIB = False
-
 
 class LookupModule(LookupBase):
 

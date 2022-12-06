@@ -9,13 +9,13 @@
 
 - name: uprade all packages first
   apt:
-    update_cache: yes
+    update_cache: true
     state: latest
-    upgrade: yes
+    upgrade: true
 
 - name: install php and mariadb
   apt:
-    update_cache: yes
+    update_cache: true
     state: latest
     name:
       - mariadb-server

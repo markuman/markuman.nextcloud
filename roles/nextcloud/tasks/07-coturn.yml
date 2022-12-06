@@ -7,7 +7,7 @@
 
 - name: install coturn
   apt:
-    update_cache: yes
+    update_cache: true
     state: latest
     name:
       - coturn

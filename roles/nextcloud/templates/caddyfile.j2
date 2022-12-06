@@ -5,7 +5,7 @@
 {{ nextcloud_fqdn }} {
         root * /var/www/nextcloud/
         file_server
-        php_fastcgi unix//run/php/php7.4-fpm.sock {
+        php_fastcgi unix//run/php/php8.1-fpm.sock {
                 env PATH /bin
                 env front_controller_active true
         }

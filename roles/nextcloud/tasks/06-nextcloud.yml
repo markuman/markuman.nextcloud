@@ -2,7 +2,7 @@
   unarchive:
     src: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
     dest: "/var/www/"
-    remote_src: yes
+    remote_src: true
     owner: www-data
     group: www-data
 
@@ -20,7 +20,7 @@
   command: "sudo -u www-data php occ app:{{ item }}"
   with_items:
     - enable bruteforcesettings
-    - install twofactor_totp
+    - enable twofactor_totp
 
 - name: nextcloud system settings
   args:
@@ -30,8 +30,8 @@
     - "trusted_domains 2 --value={{ nextcloud_fqdn }}"
     - memcache.local --value='\OC\Memcache\APCu'
     - overwrite.cli.url --value={{ nextcloud_fqdn }}
-    - preview_max_x --value 500
-    - preview_max_y --value 500
+    - preview_max_x --value 1024
+    - preview_max_y --value 1920
     - jpeg_quality --value 50
     - overwriteprotocol --value="https"
     - htaccess.IgnoreFrontController --value=true
@@ -41,13 +41,14 @@
     chdir: /var/www/nextcloud/
   command: "sudo -u www-data php occ config:app:set {{ item }}"
   with_items:
-    - previewgenerator squareSizes --value="32 256"
-    - previewgenerator widthSizes  --value="256 384"
-    - previewgenerator heightSizes --value="256"
+    - previewgenerator squareSizes --value="32 64 1024"
+    - previewgenerator widthSizes  --value="64 128 1024"
+    - previewgenerator heightSizes --value="64 256 1024"
     - preview jpeg_quality --value="50"
 
 - name: systemd timer service
-  copy:
+  ansible.builtin.copy:
+    mode: '0755'
     dest: /etc/systemd/system/nextcloudcron.service
     content: |
       [Unit]
@@ -59,7 +60,8 @@
       KillMode=process
 
 - name: systemd timer
-  copy:
+  ansible.builtin.copy:
+    mode: '0755'
     dest: /etc/systemd/system/nextcloudcron.timer
     content: |
       [Unit]
@@ -77,4 +79,4 @@
   systemd:
     name: nextcloudcron.timer
     state: started
-    enabled: yes
+    enabled: true

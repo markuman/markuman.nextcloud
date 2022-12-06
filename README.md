@@ -23,7 +23,7 @@ Ansible Nextcloud Collection - that brings up your nextcloud usage to the next l
 
 ## Documentation / Usage
 
-* [Wiki](https://git.osuv.de/ansible_collections/markuman.nextcloud/wiki)
+* [Wiki](https://github.com/markuman/markuman.nextcloud/wiki)
 * `ansible-doc <module>`
     * e.g. `ansible-doc markuman.nextcloud.file`
 
@@ -31,7 +31,7 @@ Ansible Nextcloud Collection - that brings up your nextcloud usage to the next l
 
 | **host** | **category** |
 | --- | --- |
-| https://git.osuv.de/ansible_collections/markuman.nextcloud | origin |
+| https://gitea.osuv.de/ansible-collections/markuman.nextcloud | origin |
 | https://gitlab.com/markuman/markuman.nextcloud | push mirror, merge-requests and Issues |
 | https://github.com/markuman/markuman.nextcloud | push mirror, pull-requests and Issues |
 
@@ -39,4 +39,4 @@ Ansible Nextcloud Collection - that brings up your nextcloud usage to the next l
 | Collection Version | Supported OS | Nextcloud Version | Collection EOL |
 | --- | --- | --- | --- |
 | 9 | Ubuntu 20.04 | 23 | 2022.12 |
-| 10 | Ubuntu 22.04 | >= 24 | TBA |
+| 10 | Ubuntu 22.04 | >= 25 | TBA |

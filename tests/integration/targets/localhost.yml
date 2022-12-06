@@ -7,10 +7,10 @@
     - name: start nextcloud container
       community.docker.docker_container:
         name: nextcloudintergrationtest
-        image: "nextcloud:{{ nextcloud_version | default('24-apache') }}"
+        image: "nextcloud:{{ nextcloud_version | default('25-apache') }}"
         state: started
-        auto_remove: yes
-        recreate: yes
+        auto_remove: true
+        recreate: true
         container_default_behavior: no_defaults
         published_ports:
           - 127.0.0.1:80:80

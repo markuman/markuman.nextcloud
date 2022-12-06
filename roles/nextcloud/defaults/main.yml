@@ -1,11 +1,11 @@
-nextcloud_version: 23.0.11
-caddy_version: 2.5.2
+nextcloud_version: 25.0.1
+caddy_version: 2.6.2
 
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
 
 # nextcloud
-install_talk: yes
+install_talk: true
 
 # php-fpm
 php_fpm:
@@ -20,3 +20,6 @@ opcache:
 
 # mariadb
 innodb_buffer_pool_size: 512M
+
+# os hardening
+os_auditd_max_log_file_action: rotate

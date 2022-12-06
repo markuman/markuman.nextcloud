@@ -4,6 +4,9 @@
 
 - name: change caddy user to www-data
   lineinfile:
+    mode: '0755'
+    owner: root
+    group: root
     dest: /lib/systemd/system/caddy.service
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"

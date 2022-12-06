@@ -11,7 +11,7 @@
     src: /tmp/ansible.svg
     dest: ansible.svg
   register: out_state
-  check_mode: yes
+  check_mode: true
 
 - name: check_mode state must be changed
   assert:
@@ -62,7 +62,7 @@
     src: ansible.svg
     dest: /tmp/tmp.svg
   register: out_state
-  check_mode: yes
+  check_mode: true
 
 - name: check_mode state must be changed
   assert:
@@ -144,7 +144,7 @@
   markuman.nextcloud.file:
     source: Photos
     mode: delete
-    delete_recursively: yes
+    delete_recursively: true
   register: out_state
 
 - name: delete resursively state must be changed
@@ -156,7 +156,7 @@
   markuman.nextcloud.file:
     source: Photos
     mode: delete
-    delete_recursively: yes
+    delete_recursively: true
   register: out_state
 
 - name: delete resursively state must be changed

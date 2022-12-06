@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v10.0.0
+=======
+
+Release Summary
+---------------
+
+The install role supports now nextcloud 25 on ubuntu 22.04 only.
+
 v9.3.0
 ======
 

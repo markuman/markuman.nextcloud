@@ -12,14 +12,14 @@
   ansible.posix.authorized_key:
     user: "{{ ubuntu_nextcloud_user }}"
     state: present
-    manage_dir: yes
+    manage_dir: true
     key: "{{ ubuntu_nextcloud_user_ssh_key_location }}"
 
 - name: Allow 'sudo' group to have passwordless sudo
   lineinfile:
     dest: /etc/sudoers
     state: present
-    regexp: '^%sudo	ALL=(ALL:ALL) ALL'
+    regexp: '^%sudo ALL=(ALL:ALL) ALL'
     line: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
     validate: visudo -cf %s
 

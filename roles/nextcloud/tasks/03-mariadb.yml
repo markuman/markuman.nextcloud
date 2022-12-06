@@ -1,7 +1,7 @@
 - name: init root user
   command: >
     sudo mysql -uroot -e "
-    UPDATE mysql.user SET plugin='mysql_native_password';
+    SET old_passwords=0;
     SET PASSWORD FOR root@localhost = PASSWORD('{{ mariadb_root_password }}');
     FLUSH PRIVILEGES;"
 
@@ -60,3 +60,4 @@
   with_items:
     - innodb_buffer_pool_size = "{{ innodb_buffer_pool_size }}"
     - max_allowed_packet = 64M
+    - innodb_read_only_compressed = 0

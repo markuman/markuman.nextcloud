@@ -1,5 +1,12 @@
 ancestor: null
 releases:
+  10.0.0:
+    changes:
+      release_summary: The install role supports now nextcloud 25 on ubuntu 22.04
+        only.
+    fragments:
+    - 10.0.0.yml
+    release_date: '2022-12-06'
   9.0.1-dev:
     changes:
       bugfixes:
