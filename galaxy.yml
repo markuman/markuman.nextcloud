@@ -16,4 +16,4 @@ tags:
 repository: "https://github.com/markuman/markuman.nextcloud"
 issues: "https://github.com/markuman/markuman.nextcloud/issues"
 dependencies:
-  devsec.hardening: '>=8.00.0'
+  devsec.hardening: '>=8.0.0'
