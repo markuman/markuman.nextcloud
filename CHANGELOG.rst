@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v10.0.1
+=======
+
+Release Summary
+---------------
+
+Bump nextcloud version to 25.0.2
+
 v10.0.0
 =======
 

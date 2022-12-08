@@ -7,6 +7,12 @@ releases:
     fragments:
     - 10.0.0.yml
     release_date: '2022-12-06'
+  10.0.1:
+    changes:
+      release_summary: Bump nextcloud version to 25.0.2
+    fragments:
+    - 10.0.1.yml
+    release_date: '2022-12-08'
   9.0.1-dev:
     changes:
       bugfixes:
