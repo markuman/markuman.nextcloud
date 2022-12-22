@@ -1,0 +1,102 @@
+- name: install media support (office, memories, recognize, previewgenerator)
+  when: install_media
+  block:
+    - name: install ffmpeg
+      ansible.builtin.apt:
+        update_cache: true
+        state: latest
+        name:
+          - ffmpeg
+
+    - name: install photos, memories, previewgenerator, recognize
+      register: result
+      args:
+        chdir: /var/www/nextcloud/
+      ansible.builtin.command: "sudo -u www-data php -d memory_limit=512M occ app:install {{ item }}"
+      with_items:
+        - memories
+        - previewgenerator
+        - recognize
+        - richdocuments
+        - richdocumentscode
+      failed_when:
+        - result.rc == 1
+        - '"already installed" not in result.stdout'
+      changed_when:
+        - result.rc == 0
+
+    - name: preview settings
+      args:
+        chdir: /var/www/nextcloud/
+      ansible.builtin.command: "sudo -u www-data php occ config:system:set {{ item }}"
+      with_items:
+        - preview_max_x --value 1024
+        - preview_max_y --value 1920
+        - jpeg_quality --value 60
+
+    - name: preview types
+      args:
+        chdir: /var/www/nextcloud/
+      ansible.builtin.command: "sudo -u www-data php occ config:system:set enabledPreviewProviders {{ item }}"
+      with_items:
+        - 0 --value='OC\Preview\Movie'
+        - 1 --value='OC\Preview\PNG'
+        - 2 --value='OC\Preview\JPEG'
+        - 3 --value='OC\Preview\GIF'
+        - 4 --value='OC\Preview\BMP'
+        - 5 --value='OC\Preview\XBitmap'
+        - 6 --value='OC\Preview\MP3'
+        - 7 --value='OC\Preview\MP4'
+        - 8 --value='OC\Preview\TXT'
+        - 9 --value='OC\Preview\MarkDown'
+        - 10 --value='OC\Preview\PDF'
+
+    - name: download recognize models
+      args:
+        chdir: /var/www/nextcloud/
+      ansible.builtin.command: "sudo -u www-data php occ recognize:download-models"
+
+    - name: previewgenerator app settings
+      args:
+        chdir: /var/www/nextcloud/
+      command: "sudo -u www-data php occ config:app:set {{ item }}"
+      with_items:
+        - previewgenerator squareSizes --value="32 64 1024"
+        - previewgenerator widthSizes  --value="64 128 1024"
+        - previewgenerator heightSizes --value="64 256 1024"
+        - preview jpeg_quality --value="60"
+
+    - name: previewgeneratorb systemd timer service
+      ansible.builtin.copy:
+        mode: '0755'
+        dest: /etc/systemd/system/previewgenerator.service
+        content: |
+          [Unit]
+          Description=preview generator pre generate
+
+          [Service]
+          User=www-data
+          ExecStart=/usr/bin/php occ preview:pre-generate
+          KillMode=process
+
+    - name: previewgenerator systemd timer
+      ansible.builtin.copy:
+        mode: '0755'
+        dest: /etc/systemd/system/previewgenerator.timer
+        content: |
+          [Unit]
+          Description=run preview generator pre generate every 10 min
+
+          [Timer]
+          OnBootSec=10min
+          OnUnitActiveSec=10min
+          Unit=previewgenerator.service
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: start and enable previewgenerator systemd timer
+      ansible.builtin.systemd:
+        name: previewgenerator.timer
+        state: started
+        enabled: true

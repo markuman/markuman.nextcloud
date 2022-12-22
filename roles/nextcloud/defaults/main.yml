@@ -4,8 +4,9 @@ caddy_version: 2.6.2
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
 
-# nextcloud
+# nextcloud apps
 install_talk: true
+install_media: true
 
 # php-fpm
 php_fpm:

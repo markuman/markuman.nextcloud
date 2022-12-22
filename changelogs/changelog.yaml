@@ -13,6 +13,24 @@ releases:
     fragments:
     - 10.0.1.yml
     release_date: '2022-12-08'
+  10.1.0:
+    changes:
+      bugfixes:
+      - 'markuman.nextcloud.nextcloud - Add missing https schema to ``overwrite.cli.url``.
+
+        '
+      - markuman.nextcloud.nextcloud - Entire installation role is now immutable.
+      - markuman.nextcloud.nextcloud - chown ``/var/log/caddy`` path for www-data.
+      minor_changes:
+      - 'markuman.nextcloud.nextcloud - Install role can install and configure media
+        setup (recognize, memories, previewgenerator, nextcloud office) via variable
+        `install_media`. The default value is ``true``.
+
+        '
+      release_summary: This is the minor release of the ``markuman.nextcloud`` collection.
+    fragments:
+    - 10.1.0.yml
+    release_date: '2022-12-22'
   9.0.1-dev:
     changes:
       bugfixes:

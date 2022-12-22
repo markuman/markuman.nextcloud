@@ -24,6 +24,16 @@
     group: www-data
     mode: '0755'
 
+- name: chown /var/log/caddy folder for www-data
+  ansible.builtin.file:
+    path: /var/log/caddy
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  notify:
+    - restart caddy
+
 - name: caddy config
   template:
     dest: /etc/caddy/Caddyfile

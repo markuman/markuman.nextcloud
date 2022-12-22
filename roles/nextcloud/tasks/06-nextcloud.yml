@@ -7,20 +7,32 @@
     group: www-data
 
 - name: install nextcloud
+  register: result
   args:
     chdir: /var/www/nextcloud/
   command: >
     sudo -u www-data php occ  maintenance:install --database
     "mysql" --database-name "nextcloud"  --database-user "nextcloud" --database-pass
     "{{ nextcloud_db_password }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_password }}"
+  failed_when:
+    - result.rc == 1
+    - '"\"maintenance:install\" is not defined" not in result.stderr'
+  changed_when:
+    - result.rc == 0
 
 - name: install and enable nextcloud apps
+  register: result
   args:
     chdir: /var/www/nextcloud/
   command: "sudo -u www-data php occ app:{{ item }}"
   with_items:
     - enable bruteforcesettings
     - enable twofactor_totp
+  failed_when:
+    - result.rc == 1
+    - '"already installed" not in result.stdout'
+  changed_when:
+    - result.rc == 0
 
 - name: nextcloud system settings
   args:
@@ -29,22 +41,9 @@
   with_items:
     - "trusted_domains 2 --value={{ nextcloud_fqdn }}"
     - memcache.local --value='\OC\Memcache\APCu'
-    - overwrite.cli.url --value={{ nextcloud_fqdn }}
-    - preview_max_x --value 1024
-    - preview_max_y --value 1920
-    - jpeg_quality --value 50
+    - overwrite.cli.url --value=https://{{ nextcloud_fqdn }}
     - overwriteprotocol --value="https"
     - htaccess.IgnoreFrontController --value=true
-
-- name: nextcloud app settings
-  args:
-    chdir: /var/www/nextcloud/
-  command: "sudo -u www-data php occ config:app:set {{ item }}"
-  with_items:
-    - previewgenerator squareSizes --value="32 64 1024"
-    - previewgenerator widthSizes  --value="64 128 1024"
-    - previewgenerator heightSizes --value="64 256 1024"
-    - preview jpeg_quality --value="50"
 
 - name: systemd timer service
   ansible.builtin.copy:

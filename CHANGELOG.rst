@@ -5,6 +5,26 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v10.1.0
+=======
+
+Release Summary
+---------------
+
+This is the minor release of the ``markuman.nextcloud`` collection.
+
+Minor Changes
+-------------
+
+- markuman.nextcloud.nextcloud - Install role can install and configure media setup (recognize, memories, previewgenerator, nextcloud office) via variable `install_media`. The default value is ``true``.
+
+Bugfixes
+--------
+
+- markuman.nextcloud.nextcloud - Add missing https schema to ``overwrite.cli.url``.
+- markuman.nextcloud.nextcloud - Entire installation role is now immutable.
+- markuman.nextcloud.nextcloud - chown ``/var/log/caddy`` path for www-data.
+
 v10.0.1
 =======
 
