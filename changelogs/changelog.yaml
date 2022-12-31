@@ -31,6 +31,13 @@ releases:
     fragments:
     - 10.1.0.yml
     release_date: '2022-12-22'
+  10.1.1:
+    changes:
+      bugfixes:
+      - markuman.nextcloud.nextcloud - fix preview generator timer service.
+    fragments:
+    - 10.1.1.yml
+    release_date: '2022-12-31'
   9.0.1-dev:
     changes:
       bugfixes:

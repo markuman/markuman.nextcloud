@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v10.1.1
+=======
+
+Bugfixes
+--------
+
+- markuman.nextcloud.nextcloud - fix preview generator timer service.
+
 v10.1.0
 =======
 

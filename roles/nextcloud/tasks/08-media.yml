@@ -76,7 +76,7 @@
 
           [Service]
           User=www-data
-          ExecStart=/usr/bin/php occ preview:pre-generate
+          ExecStart=/usr/bin/php /var/www/nextcloud/occ preview:pre-generate
           KillMode=process
 
     - name: previewgenerator systemd timer
