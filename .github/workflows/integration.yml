@@ -12,4 +12,5 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install make python3 ansible python3-requests python3-docker
       - run: ansible-galaxy collection install community.docker
+      - run: sudo pip3 install requests
       - run: make -C ansible_collections/markuman/nextcloud fullround
