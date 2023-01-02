@@ -6,4 +6,4 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 integration: ## run integration tests
-	ansible-playbook localhost.yml
+	ansible-playbook localhost.yml -e ansible_python_interpreter=/usr/bin/python3
