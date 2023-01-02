@@ -19,3 +19,4 @@ jobs:
       - run: sudo apt update
       - run: sudo apt install make python3 ansible
       - run: docker --version
+      - run: make fullround
