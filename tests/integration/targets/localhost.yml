@@ -3,9 +3,6 @@
   hosts: localhost
   connection: local
 
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-
   tasks:
     - name: start nextcloud container
       community.docker.docker_container:
@@ -40,7 +37,6 @@
 
   vars:
     ansible_user: root
-    ansible_python_interpreter: /usr/bin/python3
 
   tasks:
     - name: Enable the Apache2 module ssl
@@ -63,7 +59,6 @@
 
   vars:
     ansible_user: www-data
-    ansible_python_interpreter: /usr/bin/python3
 
   tasks:
     - name: install passwords app
@@ -79,7 +74,6 @@
     NEXTCLOUD_USER: ansible
     NEXTCLOUD_TOKEN: nextcloud_collection
     SSL_MODE: skip
-    ansible_python_interpreter: /usr/bin/python3
 
   module_defaults:
     markuman.nextcloud.file:
