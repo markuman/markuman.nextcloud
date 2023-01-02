@@ -79,6 +79,7 @@
     NEXTCLOUD_USER: ansible
     NEXTCLOUD_TOKEN: nextcloud_collection
     SSL_MODE: skip
+    ansible_python_interpreter: /usr/bin/python3
 
   module_defaults:
     markuman.nextcloud.file:
