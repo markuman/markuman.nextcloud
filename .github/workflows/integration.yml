@@ -20,5 +20,6 @@ jobs:
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: sudo apt update
       - run: sudo apt install make python3 ansible python3-requests
-      - run: docker --version
+      - run: python --version
+      - run: exit 1
       - run: make -C ansible_collections/markuman/nextcloud fullround
