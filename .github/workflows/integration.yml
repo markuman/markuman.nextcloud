@@ -19,6 +19,6 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: sudo apt update
-      - run: sudo apt install make python3 ansible
+      - run: sudo apt install make python3 ansible python3-requests
       - run: docker --version
       - run: make -C ansible_collections/markuman/nextcloud fullround
