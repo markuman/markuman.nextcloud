@@ -3,6 +3,9 @@
   hosts: localhost
   connection: local
 
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
   tasks:
     - name: start nextcloud container
       community.docker.docker_container:
