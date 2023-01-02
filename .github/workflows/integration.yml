@@ -17,5 +17,6 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: sudo apt update
-      - run: sudo apt install make docker.io python3
+      - run: sudo apt install make python3
       - run: sudo ln -s /usr/bin/python3 /usr/bin/python
+      - run: docker --version
