@@ -1,8 +1,41 @@
-- name: get nextcloud itself
-  unarchive:
-    src: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
-    dest: "/var/www/"
+- name: copy nextcloud gpg signature
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/roles/nextcloud/files/nextcloud.asc"
+    dest: /tmp/nextcloud.asc
+
+- name: import gpgkey for verify nextcloud installation
+  command: gpg --import /tmp/nextcloud.asc
+
+- name: get sha256sum
+  ansible.builtin.uri:
+    url: https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip.sha256
+    return_content: yes
+  register: ncsum
+
+- name: download nc itself
+  ansible.builtin.get_url:
+    url: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "/tmp/nextcloud-{{ nextcloud_version }}.zip"
+    checksum: "sha256:{{ ncsum.content.split(' ')[0] }}"
+
+- name: download nc signature
+  ansible.builtin.get_url:
+    url: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip.asc"
+    dest: "/tmp/nextcloud-{{ nextcloud_version }}.zip.asc"
+
+- name: verify download
+  command: "gpg --verify /tmp/nextcloud-{{ nextcloud_version }}.zip.asc /tmp/nextcloud-{{ nextcloud_version }}.zip"
+  register: result
+  failed_when:
+    - result.rc != 0
+  changed_when:
+    - result.rc != 0
+
+- name: extract nextcloud itself
+  ansible.builtin.unarchive:
     remote_src: true
+    src: "/tmp/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "/var/www/"
     owner: www-data
     group: www-data
 

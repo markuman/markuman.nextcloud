@@ -38,6 +38,20 @@ releases:
     fragments:
     - 10.1.1.yml
     release_date: '2022-12-31'
+  10.2.0:
+    changes:
+      minor_changes:
+      - markuman.nextcloud.nextcloud - bump default nextcloud version to 25.0.3.
+      - markuman.nextcloud.nextcloud - include nextcloud public gpg key to verify
+        nextcloud download before installation.
+      - markuman.nextcloud.nextcloud - install fail2ban for better sshd security.
+      release_summary: 'This minor release of ``markuman.nextcloud`` improves the
+        security of the instance itself
+
+        and the installation process.'
+    fragments:
+    - 10.2.0.yml
+    release_date: '2023-01-20'
   9.0.1-dev:
     changes:
       bugfixes:

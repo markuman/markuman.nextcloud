@@ -40,6 +40,7 @@
       - php-bcmath
       - imagemagick
       - libmagickcore-6.q16-6-extra
+      - fail2ban
 
 - name: enable ipv6 for ufw
   lineinfile:

@@ -5,6 +5,22 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v10.2.0
+=======
+
+Release Summary
+---------------
+
+This minor release of ``markuman.nextcloud`` improves the security of the instance itself
+and the installation process.
+
+Minor Changes
+-------------
+
+- markuman.nextcloud.nextcloud - bump default nextcloud version to 25.0.3.
+- markuman.nextcloud.nextcloud - include nextcloud public gpg key to verify nextcloud download before installation.
+- markuman.nextcloud.nextcloud - install fail2ban for better sshd security.
+
 v10.1.1
 =======
 
