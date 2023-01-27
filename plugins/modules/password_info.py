@@ -19,6 +19,12 @@ options:
       - Name represents the label of the password.
     required: false
     type: str
+  cse_password:
+    description:
+      - Password for client side encryption.
+    required: false
+    type: str
+    version_added: 9.3.0
 extends_documentation_fragment:
   - markuman.nextcloud.nextcloud.connectivity
 notes:
@@ -38,7 +44,8 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=parameter_spects(dict(
-            name=dict(required=False, type='str')
+            name=dict(required=False, type='str'),
+            cse_password=dict(required=False, type='str', no_log=True)
         ))
     )
     module.params["details"] = True

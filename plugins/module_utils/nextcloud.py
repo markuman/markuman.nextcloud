@@ -3,12 +3,21 @@ __metaclass__ = type
 import os
 import traceback
 from xml.dom import minidom
+import binascii
+import json
 
 try:
     import requests
     HAS_REQUESTS_LIB = True
 except ImportError:
     HAS_REQUESTS_LIB = False
+    IMPORT_ERROR = traceback.format_exc()
+
+try:
+    import pysodium
+    HAS_PYSODIUM_LIB = True
+except ImportError:
+    HAS_PYSODIUM_LIB = False
     IMPORT_ERROR = traceback.format_exc()
 
 
@@ -35,11 +44,11 @@ class NextcloudErrorHandler:
     def __init__(self, fail_json):
         self.fail = fail_json
 
-        def status_code_error(self, status):
-            try:
-                self.fail(msg='Nextcloud returned with status code {SC}'.format(SC=status))
-            except Exception:
-                self.fail('Nextcloud returned with status code {SC}'.format(SC=status))
+    def status_code_error(self, status):
+        try:
+            self.fail(msg='Nextcloud returned with status code {SC}'.format(SC=status))
+        except Exception:
+            self.fail('Nextcloud returned with status code {SC}'.format(SC=status))
 
 
 def parameter_spects(spec_arguments):
@@ -51,6 +60,19 @@ def parameter_spects(spec_arguments):
     )
 
     return {**argument_spec, **spec_arguments}
+
+
+def decrypt(encrypted, key):
+    nonce = encrypted[0:pysodium.crypto_secretbox_NONCEBYTES]
+    ciphertext = encrypted[pysodium.crypto_secretbox_NONCEBYTES:]
+    return pysodium.crypto_secretbox_open(ciphertext, nonce, key)
+
+
+def decrypt_item(item_key, item, key='label'):
+    if len(item[key]) == 0:
+        return ""
+    vals = binascii.unhexlify(item[key])
+    return decrypt(vals, binascii.unhexlify(item_key)).decode()
 
 
 class NextcloudHandler:
@@ -68,6 +90,7 @@ class NextcloudHandler:
             self.ssl = False
 
         self.details = params.get('details') or False
+        self.x_api_session = None
 
         self.HOST = params.get('host') or os.environ.get('NEXTCLOUD_HOST')
         if self.HOST is None:
@@ -81,15 +104,61 @@ class NextcloudHandler:
         if self.TOKEN is None:
             self.exit.status_code_error('Unable to continue. No Nextcloud Token is given.')
 
-        self.headers = {
+        self.E2E_PASSWORD = False
+        if params.get('cse_password') or os.environ.get('NEXTCLOUD_CSE_PASSWORD'):
+            """
+                manage passwords client side encryption
+            """
+            self.E2E_PASSWORD = True
+            password = params.get('cse_password') or os.environ.get('NEXTCLOUD_CSE_PASSWORD')
+            retval = self.request_passwords_session()
+            passwordSalt = binascii.unhexlify(retval['challenge']['salts'][0])
+            genericHashKey = binascii.unhexlify(retval['challenge']['salts'][1])
+            passwordHashSalt = binascii.unhexlify(retval['challenge']['salts'][2])
+
+            input = password.encode() + passwordSalt
+            genericHash = pysodium.crypto_generichash(
+                input,
+                k=genericHashKey,
+                outlen=pysodium.crypto_generichash_BYTES_MAX
+            )
+            passwordHash = pysodium.crypto_pwhash(
+                pysodium.crypto_box_SEEDBYTES,
+                genericHash,
+                passwordHashSalt,
+                pysodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+                pysodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+                pysodium.crypto_pwhash_ALG_ARGON2ID13
+            )
+            # self.cse['keys']['CSEv1r1']
+            self.cse = self.open_passwords_session(passwordHash.hex())
+            # decrypt CSEv1r1 chain
+            vals = binascii.unhexlify(self.cse['keys']['CSEv1r1'])
+            salt = vals[0:pysodium.crypto_pwhash_SALTBYTES]
+            text = vals[pysodium.crypto_pwhash_SALTBYTES:]
+            key = pysodium.crypto_pwhash(
+                pysodium.crypto_box_SEEDBYTES,
+                password,
+                salt,
+                pysodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+                pysodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+                pysodium.crypto_pwhash_ALG_ARGON2ID13
+            )
+            self.keychain = json.loads(decrypt(text, key))
+
+    def headers(self):
+        headers = {
             'Accept': 'application/json',
             'OCS-APIRequest': 'true'
         }
+        if self.x_api_session:
+            headers['X-API-SESSION'] = self.x_api_session
+        return headers
 
     def get(self, path):
         r = requests.get(
             '{HTTP}://{HOST}/{PATH}'.format(HTTP=self.HTTP, HOST=self.HOST, PATH=path),
-            auth=(self.USER, self.TOKEN), verify=self.ssl, headers=self.headers
+            auth=(self.USER, self.TOKEN), verify=self.ssl, headers=self.headers()
         )
 
         if r.status_code == 200:
@@ -182,13 +251,45 @@ class NextcloudHandler:
         r = requests.post(
             '{HTTP}://{HOST}/{V1}/{CHANNEL}'.format(HTTP=self.HTTP, HOST=self.HOST, V1=spreed_v1_path, CHANNEL=channel),
             data=body,
-            headers=self.headers,
+            headers=self.headers(),
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )
 
         if r.status_code == 201:
             return r, True
+        else:
+            self.exit.status_code_error(r.status_code)
+
+    def request_passwords_session(self):
+        r = self.get("index.php/apps/passwords/api/1.0/session/request")
+        if r.status_code == 200:
+            return r.json()
+        else:
+            self.exit.status_code_error(r.status_code)
+
+    def open_passwords_session(self, passwordHash):
+        post_obj = {
+            'challenge': passwordHash
+        }
+
+        r = requests.post(
+            '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/session/open'.format(HTTP=self.HTTP, HOST=self.HOST),
+            data=post_obj,
+            headers=self.headers(),
+            auth=(self.USER, self.TOKEN),
+            verify=self.ssl
+        )
+        if r.status_code == 200:
+            self.x_api_session = r.headers.get('X-API-SESSION')
+            return r.json()
+        else:
+            self.exit.status_code_error(r.status_code)
+
+    def close_passwords_session(self):
+        r = self.get("index.php/apps/passwords/api/1.0/session/close")
+        if r.status_code == 200:
+            return r.json()
         else:
             self.exit.status_code_error(r.status_code)
 
@@ -214,7 +315,7 @@ class NextcloudHandler:
         r = requests.post(
             '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/folder/create'.format(HTTP=self.HTTP, HOST=self.HOST),
             data=post_obj,
-            headers=self.headers,
+            headers=self.headers(),
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )
@@ -234,11 +335,26 @@ class NextcloudHandler:
         r = self.list_passwords()
         ret = []
         for item in r:
-            if item['label'] == name:
-                if self.details:
-                    ret.append(item)
-                else:
-                    ret.append(item['password'])
+            if item['cseType'] == 'CSEv1r1' and self.E2E_PASSWORD:
+                item_key = self.keychain['keys'].get(item['cseKey'])
+                if item_key:
+                    if decrypt_item(item_key, item, 'label') == name:
+                        if self.details:
+                            item['password'] = decrypt_item(item_key, item, 'password')
+                            item['url'] = decrypt_item(item_key, item, 'url')
+                            item['username'] = decrypt_item(item_key, item, 'username')
+                            item['label'] = decrypt_item(item_key, item, 'label')
+                            item['notes'] = decrypt_item(item_key, item, 'notes')
+                            item['customFields'] = decrypt_item(item_key, item, 'customFields')
+                            ret.append(item)
+                        else:
+                            ret.append(decrypt_item(item_key, item, 'password'))
+            else:
+                if item['label'] == name:
+                    if self.details:
+                        ret.append(item)
+                    else:
+                        ret.append(item['password'])
         return ret
 
     def fetch_generated_password(self):
@@ -252,7 +368,7 @@ class NextcloudHandler:
         r = requests.post(
             '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/create'.format(HTTP=self.HTTP, HOST=self.HOST),
             data=post_obj,
-            headers=self.headers,
+            headers=self.headers(),
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )
@@ -266,7 +382,7 @@ class NextcloudHandler:
         r = requests.delete(
             '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/delete'.format(HTTP=self.HTTP, HOST=self.HOST),
             data=post_obj,
-            headers=self.headers,
+            headers=self.headers(),
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )
@@ -280,7 +396,7 @@ class NextcloudHandler:
         r = requests.patch(
             '{HTTP}://{HOST}/index.php/apps/passwords/api/1.0/password/update'.format(HTTP=self.HTTP, HOST=self.HOST),
             data=post_obj,
-            headers=self.headers,
+            headers=self.headers(),
             auth=(self.USER, self.TOKEN),
             verify=self.ssl
         )

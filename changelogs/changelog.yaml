@@ -52,6 +52,18 @@ releases:
     fragments:
     - 10.2.0.yml
     release_date: '2023-01-20'
+  11.0.0:
+    changes:
+      bugfixes:
+      - plugins/module_utils/nextcloud.py - fix wrong indentation in ``NextcloudErrorHandler``.
+      minor_changes:
+      - markuman.nextcloud.password_info - new parameter ``cse_password`` for end
+        to end encryption.
+      release_summary: The ``password_info`` module and ``password`` lookup plugin
+        supports end to end encryption now.
+    fragments:
+    - 11.0.0.yml
+    release_date: '2023-01-27'
   9.0.1-dev:
     changes:
       bugfixes:

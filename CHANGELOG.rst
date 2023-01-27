@@ -5,6 +5,24 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v11.0.0
+=======
+
+Release Summary
+---------------
+
+The ``password_info`` module and ``password`` lookup plugin supports end to end encryption now.
+
+Minor Changes
+-------------
+
+- markuman.nextcloud.password_info - new parameter ``cse_password`` for end to end encryption.
+
+Bugfixes
+--------
+
+- plugins/module_utils/nextcloud.py - fix wrong indentation in ``NextcloudErrorHandler``.
+
 v10.2.0
 =======
 

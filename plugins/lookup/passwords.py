@@ -33,6 +33,9 @@ options:
   api_token:
     description: generated api token of the user on the requested nextcloud passwords user
     required: True
+  cse_password:
+    description: password for end to end encryption.
+    required: False
 
 notes:
     - This lookup plugin requires a https connection to the requested nextcloud instance.
@@ -64,6 +67,8 @@ class LookupModule(LookupBase):
             params['details'] = kwargs.get('details')
         if kwargs.get('ssl_mode') is not None:
             params['ssl_mode'] = kwargs.get('ssl_mode')
+        if kwargs.get('cse_password') is not None:
+            params['cse_password'] = kwargs.get('cse_password')
 
         nc = NextcloudHandler(params, AnsibleError)
         for term in terms:
