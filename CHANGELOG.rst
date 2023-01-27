@@ -5,6 +5,19 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v11.0.1
+=======
+
+Release Summary
+---------------
+
+Trivial bugfix release.
+
+Bugfixes
+--------
+
+- markuman.nextcloud.password_info - ``version_added`` for ``cse_password`` was wrong.
+
 v11.0.0
 =======
 

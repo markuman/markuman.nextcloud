@@ -22,9 +22,10 @@ options:
   cse_password:
     description:
       - Password for client side encryption.
+      - Required pysodium.
     required: false
     type: str
-    version_added: 9.3.0
+    version_added: 11.0.0
 extends_documentation_fragment:
   - markuman.nextcloud.nextcloud.connectivity
 notes:

@@ -64,6 +64,15 @@ releases:
     fragments:
     - 11.0.0.yml
     release_date: '2023-01-27'
+  11.0.1:
+    changes:
+      bugfixes:
+      - markuman.nextcloud.password_info - ``version_added`` for ``cse_password``
+        was wrong.
+      release_summary: Trivial bugfix release.
+    fragments:
+    - 11.0.1.yml
+    release_date: '2023-01-27'
   9.0.1-dev:
     changes:
       bugfixes:

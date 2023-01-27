@@ -36,6 +36,7 @@ options:
   cse_password:
     description: password for end to end encryption.
     required: False
+    version_added: 11.0.0
 
 notes:
     - This lookup plugin requires a https connection to the requested nextcloud instance.
