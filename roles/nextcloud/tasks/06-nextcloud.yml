@@ -1,6 +1,6 @@
 - name: copy nextcloud gpg signature
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/roles/nextcloud/files/nextcloud.asc"
+    src: nextcloud.asc
     dest: /tmp/nextcloud.asc
 
 - name: import gpgkey for verify nextcloud installation
@@ -9,7 +9,7 @@
 - name: get sha256sum
   ansible.builtin.uri:
     url: https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip.sha256
-    return_content: yes
+    return_content: true
   register: ncsum
 
 - name: download nc itself
@@ -24,7 +24,7 @@
     dest: "/tmp/nextcloud-{{ nextcloud_version }}.zip.asc"
 
 - name: verify download
-  command: "gpg --verify /tmp/nextcloud-{{ nextcloud_version }}.zip.asc /tmp/nextcloud-{{ nextcloud_version }}.zip"
+  ansible.builtin.command: "gpg --verify /tmp/nextcloud-{{ nextcloud_version }}.zip.asc /tmp/nextcloud-{{ nextcloud_version }}.zip"
   register: result
   failed_when:
     - result.rc != 0
@@ -43,7 +43,7 @@
   register: result
   args:
     chdir: /var/www/nextcloud/
-  command: >
+  ansible.builtin.command: >
     sudo -u www-data php occ  maintenance:install --database
     "mysql" --database-name "nextcloud"  --database-user "nextcloud" --database-pass
     "{{ nextcloud_db_password }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_password }}"
@@ -57,7 +57,7 @@
   register: result
   args:
     chdir: /var/www/nextcloud/
-  command: "sudo -u www-data php occ app:{{ item }}"
+  ansible.builtin.command: "sudo -u www-data php occ app:{{ item }}"
   with_items:
     - enable bruteforcesettings
     - enable twofactor_totp
@@ -70,7 +70,7 @@
 - name: nextcloud system settings
   args:
     chdir: /var/www/nextcloud/
-  command: "sudo -u www-data php occ config:system:set {{ item }}"
+  ansible.builtin.command: "sudo -u www-data php occ config:system:set {{ item }}"
   with_items:
     - "trusted_domains 2 --value={{ nextcloud_fqdn }}"
     - memcache.local --value='\OC\Memcache\APCu'
@@ -108,7 +108,20 @@
       WantedBy=timers.target
 
 - name: start and enable systemd timer
-  systemd:
+  ansible.builtin.systemd:
     name: nextcloudcron.timer
     state: started
     enabled: true
+
+- name: setup event scheduler to remove dead authtokens
+  when: (remove_unused_authtokens_after_days) | int > 0
+  community.mysql.mysql_query:
+    login_db: nextcloud
+    query: >
+      CREATE EVENT IF NOT EXISTS remove_unused_authtokens
+        ON SCHEDULE EVERY 1 DAY
+        STARTS now()
+        DO
+        DELETE FROM oc_authtoken
+          WHERE from_unixtime(last_activity) < DATE_SUB(NOW(), INTERVAL {{ remove_unused_authtokens_after_days }} DAY);
+    single_transaction: true

@@ -21,6 +21,7 @@ opcache:
 
 # mariadb
 innodb_buffer_pool_size: 512M
+remove_unused_authtokens_after_days: 21
 
 # os hardening
 os_auditd_max_log_file_action: rotate

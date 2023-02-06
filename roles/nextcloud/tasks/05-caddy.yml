@@ -1,9 +1,9 @@
 - name: Install caddy from github releases
-  apt:
+  ansible.builtin.apt:
     deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_amd64.deb"
 
 - name: change caddy user to www-data
-  lineinfile:
+  ansible.builtin.lineinfile:
     mode: '0755'
     owner: root
     group: root
@@ -35,8 +35,11 @@
     - restart caddy
 
 - name: caddy config
-  template:
+  ansible.builtin.template:
     dest: /etc/caddy/Caddyfile
     src: caddyfile.j2
   notify:
     - restart caddy
+
+- name: flush handlers after caddy configuration
+  ansible.builtin.meta: flush_handlers

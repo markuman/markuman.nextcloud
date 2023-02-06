@@ -1,20 +1,20 @@
 - name: set hostname
-  hostname:
+  ansible.builtin.hostname:
     name: "{{ nextcloud_fqdn.split('.')[0] }}"
 
 - name: complete /etc/hosts
-  lineinfile:
+  ansible.builtin.lineinfile:
     name: /etc/hosts
     line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
 
 - name: uprade all packages first
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     state: latest
     upgrade: true
 
 - name: install php and mariadb
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     state: latest
     name:
@@ -43,7 +43,7 @@
       - fail2ban
 
 - name: enable ipv6 for ufw
-  lineinfile:
+  ansible.builtin.lineinfile:
     name: /etc/default/ufw
     regexp: IPV6=no
     line: IPV6=yes
@@ -51,7 +51,7 @@
     - reload ufw
 
 - name: ufw rules
-  command: "{{ item }}"
+  ansible.builtin.command: "{{ item }}"
   with_items:
     - ufw limit ssh comment "incomming ssh with ratelimit"
     - ufw allow out 22 comment "outgoing ssh"
@@ -64,11 +64,13 @@
     - ufw allow out 993 comment "outgoing imap ssl"
     - ufw allow out 465 comment "outgoing smtp ssl"
 
-
 - name: ufw enable
   community.general.ufw:
     state: enabled
 
 - name: os hardening
-  include_role:
+  ansible.builtin.include_role:
     name: devsec.hardening.os_hardening
+
+- name: flush handlers for os hardening
+  ansible.builtin.meta: flush_handlers

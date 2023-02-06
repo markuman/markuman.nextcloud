@@ -5,3 +5,13 @@
 - include_tasks: 05-caddy.yml
 - include_tasks: 06-nextcloud.yml
 - include_tasks: 08-media.yml
+
+- name: check if a reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+  register: reboot_required_file
+
+- name: Unconditionally reboot the machine with all defaults
+  ansible.builtin.reboot:
+  when: reboot_required_file.stat.exists

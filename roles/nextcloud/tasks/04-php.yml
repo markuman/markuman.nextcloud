@@ -1,7 +1,7 @@
 - name: setup php-fpm
   notify:
     - restart php-fpm
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/php/8.1/fpm/pool.d/www.conf
     state: present
     regexp: "{{ item.regexp }}"
@@ -29,7 +29,7 @@
 - name: setup php
   notify:
     - restart php-fpm
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/php/8.1/fpm/php.ini
     state: present
     regexp: "{{ item.regexp }}"
@@ -57,7 +57,7 @@
 - name: setup php cli
   notify:
     - restart php-fpm
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/php/8.1/cli/php.ini
     state: present
     regexp: "{{ item.regexp }}"
@@ -67,11 +67,18 @@
       line: cgi.fix_pathinfo=0
     - regexp: max_execution_time = 30
       line: max_execution_time = 300
+    - regexp: pdo_mysql.default_socket=
+      line: pdo_mysql.default_socket=/run/mysqld/mysqld.sock
+    - regexp: mysqli.default_socket =
+      line: mysqli.default_socket = /run/mysqld/mysqld.sock
 
 - name: setup php cli apc
   notify:
     - restart php-fpm
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/php/8.1/cli/php.ini
     state: present
     line: apc.enable_cli=1
+
+- name: flush handlers for php update
+  ansible.builtin.meta: flush_handlers

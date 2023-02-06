@@ -3,16 +3,21 @@
     state: reloaded
 
 - name: restart caddy
-  systemd:
+  ansible.builtin.systemd:
     name: caddy
     state: restarted
 
 - name: restart php-fpm
-  systemd:
+  ansible.builtin.systemd:
     name: php8.1-fpm
     state: restarted
 
 - name: restart coturn
-  systemd:
+  ansible.builtin.systemd:
     name: coturn
+    state: restarted
+
+- name: restart mariadb
+  ansible.builtin.systemd:
+    name: mariadb
     state: restarted

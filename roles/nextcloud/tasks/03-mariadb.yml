@@ -1,12 +1,12 @@
 - name: init root user
-  command: >
+  ansible.builtin.command: >
     sudo mysql -uroot -e "
     SET old_passwords=0;
     SET PASSWORD FOR root@localhost = PASSWORD('{{ mariadb_root_password }}');
     FLUSH PRIVILEGES;"
 
 - name: root save my.cnf
-  ini_file:
+  ansible.builtin.ini_file:
     owner: root
     path: "/root/.my.cnf"
     section: client
@@ -18,14 +18,20 @@
       value: root
     - option: password
       value: "{{ mariadb_root_password }}"
+    - option: default-character-set
+      value: utf8mb4
 
-- include_role:
-    name: devsec.hardening.mysql_hardening
-  vars:
-    mysql_root_password: "{{ mariadb_root_password }}"
+
+- name: apply devsec.hardening.mysql_hardening role
+  ignore_errors: true
+  block:
+    - ansible.builtin.include_role:
+        name: devsec.hardening.mysql_hardening
+      vars:
+        mysql_root_password: "{{ mariadb_root_password }}"
 
 - name: save my.cnf
-  ini_file:
+  ansible.builtin.ini_file:
     owner: "{{ ubuntu_nextcloud_user }}"
     path: "/home/{{ ubuntu_nextcloud_user }}/.my.cnf"
     section: client
@@ -37,6 +43,8 @@
       value: "{{ nextcloud_db_user }}"
     - option: password
       value: "{{ nextcloud_db_password }}"
+    - option: default-character-set
+      value: utf8mb4
 
 - name: create nextcloud db
   community.mysql.mysql_db:
@@ -52,8 +60,10 @@
     priv: 'nextcloud.*:ALL'
     state: present
 
-- name: mariadb settings
-  lineinfile:
+- name: mariadb settings for mysqld
+  notify:
+    - restart mariadb
+  ansible.builtin.lineinfile:
     name: /etc/mysql/mariadb.conf.d/50-server.cnf
     insertafter: '^\[mysqld]'
     line: "{{ item }}"
@@ -61,3 +71,23 @@
     - innodb_buffer_pool_size = "{{ innodb_buffer_pool_size }}"
     - max_allowed_packet = 64M
     - innodb_read_only_compressed = 0
+    - event_scheduler = ON
+    - transaction_isolation = READ-COMMITTED
+
+- name: mariadb settings for server
+  notify:
+    - restart mariadb
+  ansible.builtin.lineinfile:
+    name: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '^\[server]'
+    line: "{{ item }}"
+  with_items:
+    - query_cache_type = 1
+    - query_cache_limit = 2M
+    - query_cache_min_res_unit = 2k
+    - query_cache_size = 64M
+    - tmp_table_size = 64M
+    - max_heap_table_size= 64M
+
+- name: restart mariadb, because we need the event scheduler
+  ansible.builtin.meta: flush_handlers
