@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v11.2.0
+=======
+
+Release Summary
+---------------
+
+Minor release. Just bump nextcloud to 25.0.5 and caddy to 2.6.4.
+
 v11.1.0
 =======
 
