@@ -25,7 +25,8 @@
 - name: apply devsec.hardening.mysql_hardening role
   ignore_errors: true
   block:
-    - ansible.builtin.include_role:
+    - name: apply devsec.hardening.mysql_hardening role
+      ansible.builtin.include_role:
         name: devsec.hardening.mysql_hardening
       vars:
         mysql_root_password: "{{ mariadb_root_password }}"

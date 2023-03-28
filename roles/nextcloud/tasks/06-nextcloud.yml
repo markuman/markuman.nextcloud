@@ -2,6 +2,7 @@
   ansible.builtin.copy:
     src: nextcloud.asc
     dest: /tmp/nextcloud.asc
+    mode: '0600'
 
 - name: import gpgkey for verify nextcloud installation
   command: gpg --import /tmp/nextcloud.asc
