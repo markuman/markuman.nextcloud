@@ -105,6 +105,13 @@ releases:
     fragments:
     - 11.2.0.yml
     release_date: '2023-03-28'
+  26.0.0:
+    changes:
+      release_summary: With this release, the Collection Major Version is in sync
+        with the Nextcloud Server Major Version.
+    fragments:
+    - 26.0.0.yml
+    release_date: '2023-06-01'
   9.0.1-dev:
     changes:
       bugfixes:

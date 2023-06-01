@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v26.0.0
+=======
+
+Release Summary
+---------------
+
+With this release, the Collection Major Version is in sync with the Nextcloud Server Major Version.
+
 v11.2.0
 =======
 
