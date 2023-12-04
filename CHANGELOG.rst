@@ -5,6 +5,14 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v27.0.0
+=======
+
+Release Summary
+---------------
+
+Major update of ``markuman.nextcloud``. Use nextcloud 27 and caddy 2.7.
+
 v26.0.0
 =======
 

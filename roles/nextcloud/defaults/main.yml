@@ -1,5 +1,5 @@
-nextcloud_version: 26.0.2
-caddy_version: 2.6.4
+nextcloud_version: 27.1.4
+caddy_version: 2.7.5
 
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
@@ -12,15 +12,15 @@ install_media: true
 php_fpm:
   max_children: 120
   start_servers: 12
-  min_spare_servers: 6
-  max_spare_servers: 18
+  min_spare_servers: 8
+  max_spare_servers: 40
 
 # php
 opcache:
   interned_strings_buffer: 16
 
 # mariadb
-innodb_buffer_pool_size: 512M
+innodb_buffer_pool_size: 1G
 remove_unused_authtokens_after_days: 21
 
 # os hardening

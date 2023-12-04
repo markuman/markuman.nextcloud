@@ -112,6 +112,13 @@ releases:
     fragments:
     - 26.0.0.yml
     release_date: '2023-06-01'
+  27.0.0:
+    changes:
+      release_summary: Major update of ``markuman.nextcloud``. Use nextcloud 27 and
+        caddy 2.7.
+    fragments:
+    - 27.yml
+    release_date: '2023-12-04'
   9.0.1-dev:
     changes:
       bugfixes:

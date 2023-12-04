@@ -7,7 +7,7 @@
     - name: start nextcloud container
       community.docker.docker_container:
         name: nextcloudintergrationtest
-        image: "nextcloud:{{ nextcloud_version | default('25-apache') }}"
+        image: "nextcloud:{{ nextcloud_version | default('27-apache') }}"
         state: started
         auto_remove: true
         recreate: true
@@ -47,6 +47,11 @@
 
     - name: enable default-ssl
       command: a2ensite default-ssl
+
+    - name: remove apache limits
+      ansible.builtin.file:
+        path: /etc/apache2/conf-enabled/apache-limits.conf
+        state: absent
 
     - name: reload apache2
       service:
