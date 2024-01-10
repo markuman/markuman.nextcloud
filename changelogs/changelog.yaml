@@ -119,6 +119,21 @@ releases:
     fragments:
     - 27.yml
     release_date: '2023-12-04'
+  28.0.0:
+    changes:
+      minor_changes:
+      - bump nextcloud to 28.0.0
+      - change sudoers configuration to ``/etc/sudoers.d/ubuntu_nextcloud_user`` to
+        keep existing ``/etc/sudoers`` untouched
+      - dump caddy to 2.7.6
+      - install and configure redis is available now via ``install_redis`` variable.
+        default is ``true``
+      - use ``defaults/main.yml`` for ssh hardening defaults
+      release_summary: This is a major release of ``markuman.nextcloud`` in version
+        28. It installed nextcloud 28 now.
+    fragments:
+    - 28.0.0.yml
+    release_date: '2023-12-22'
   9.0.1-dev:
     changes:
       bugfixes:

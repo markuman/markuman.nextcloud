@@ -42,6 +42,15 @@
       - libmagickcore-6.q16-6-extra
       - fail2ban
 
+- name: install redis
+  when: install_redis
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    name:
+      - redis-server
+      - php8.1-redis
+
 - name: enable ipv6 for ufw
   ansible.builtin.lineinfile:
     name: /etc/default/ufw

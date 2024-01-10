@@ -1,7 +1,7 @@
 namespace: "markuman"
 description: bring up your nextcloud usage to the next level 🚀
 name: "nextcloud"
-version: "27.0.0"
+version: "28.0.0"
 readme: "README.md"
 authors:
     - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
@@ -16,5 +16,5 @@ tags:
 repository: "https://github.com/markuman/markuman.nextcloud"
 issues: "https://github.com/markuman/markuman.nextcloud/issues"
 dependencies:
-  devsec.hardening: '>=8.6.0'
-  community.mysql: '>=3.2.1'
+  devsec.hardening: '>=9.0.0,<10.0.0'
+  community.mysql: '>=3.8.0,<4.0.0'

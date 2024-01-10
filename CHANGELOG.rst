@@ -5,6 +5,23 @@ markuman nextcloud Release Notes
 .. contents:: Topics
 
 
+v28.0.0
+=======
+
+Release Summary
+---------------
+
+This is a major release of ``markuman.nextcloud`` in version 28. It installed nextcloud 28 now.
+
+Minor Changes
+-------------
+
+- bump nextcloud to 28.0.0
+- change sudoers configuration to ``/etc/sudoers.d/ubuntu_nextcloud_user`` to keep existing ``/etc/sudoers`` untouched
+- dump caddy to 2.7.6
+- install and configure redis is available now via ``install_redis`` variable. default is ``true``
+- use ``defaults/main.yml`` for ssh hardening defaults
+
 v27.0.0
 =======
 

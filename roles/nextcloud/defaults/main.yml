@@ -1,5 +1,5 @@
-nextcloud_version: 27.1.4
-caddy_version: 2.7.5
+nextcloud_version: 28.0.1
+caddy_version: 2.7.6
 
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
@@ -7,6 +7,7 @@ nextcloud_db_user: nextcloud
 # nextcloud apps
 install_talk: true
 install_media: true
+install_redis: true
 
 # php-fpm
 php_fpm:
@@ -25,3 +26,26 @@ remove_unused_authtokens_after_days: 21
 
 # os hardening
 os_auditd_max_log_file_action: rotate
+
+# ssh hardening
+ssh_allow_users: "{{ ubuntu_nextcloud_user }}"
+ssh_max_auth_retries: 5
+# mozilla ssh_scan: Modern - with just ETM (encrypt-then-mac) macs
+# https://github.com/mozilla/ssh_scan/blob/master/config/policies/just_etm_macs.yaml
+ssh_kex:
+  - curve25519-sha256@libssh.org
+  - diffie-hellman-group-exchange-sha256
+  - ecdh-sha2-nistp521
+  - ecdh-sha2-nistp384
+  - ecdh-sha2-nistp256
+ssh_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - umac-128-etm@openssh.com
+ssh_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr

@@ -79,6 +79,17 @@
     - overwriteprotocol --value="https"
     - htaccess.IgnoreFrontController --value=true
 
+- name: nextcloud system settings for redis
+  args:
+    chdir: /var/www/nextcloud/
+  ansible.builtin.command: "sudo -u www-data php occ config:system:set {{ item }}"
+  when: install_redis
+  with_items:
+    - memcache.locking --value='\OC\Memcache\Redis'
+    - redis host --value=localhost
+    - redis port --value 6379
+    - redis timeout --value=0.0
+
 - name: systemd timer service
   ansible.builtin.copy:
     mode: '0755'
