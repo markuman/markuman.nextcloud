@@ -4,6 +4,13 @@ markuman nextcloud Release Notes
 
 .. contents:: Topics
 
+v28.0.1
+=======
+
+Release Summary
+---------------
+
+Bump nextcloud version to 28.0.3.
 
 v28.0.0
 =======
@@ -55,7 +62,6 @@ Release Summary
 11.1.0 - big mariadb improvment.
 Installation role will follow most of the mariadb recommendations now (https://docs.nextcloud.com/server/latest/admin_manual/configuration_database/linux_database_configuration.html#configuring-a-mysql-or-mariadb-database).
 Furthermore, it will create a daily schedule event that will remove authtokens that aren't used for more than 21 days.
-
 
 Minor Changes
 -------------

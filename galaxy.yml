@@ -1,7 +1,7 @@
 namespace: "markuman"
 description: bring up your nextcloud usage to the next level 🚀
 name: "nextcloud"
-version: "28.0.0"
+version: "28.0.1"
 readme: "README.md"
 authors:
     - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
