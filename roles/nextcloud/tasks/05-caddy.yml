@@ -1,7 +1,13 @@
-- name: Install caddy from github releases
+- name: Install caddy for linux_amd64 from github releases
   ansible.builtin.apt:
     deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_amd64.deb"
+  when: ansible_facts['architecture'] == 'x86_64'
 
+- name: Install caddy for linux_arm64 from github releases
+  ansible.builtin.apt:
+    deb: "https://github.com/caddyserver/caddy/releases/download/v{{ caddy_version }}/caddy_{{ caddy_version }}_linux_arm64.deb"
+  when: ansible_facts['architecture'] == 'aarch64'
+  
 - name: change caddy user to www-data
   ansible.builtin.lineinfile:
     mode: '0755'
