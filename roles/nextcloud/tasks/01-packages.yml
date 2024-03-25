@@ -7,7 +7,7 @@
     name: /etc/hosts
     line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
 
-- name: uprade all packages first
+- name: upgrade all packages first
   ansible.builtin.apt:
     update_cache: true
     state: latest
