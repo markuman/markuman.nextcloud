@@ -159,6 +159,12 @@ releases:
     fragments:
     - 29.0.2.yml
     release_date: '2024-05-30'
+  29.0.4:
+    changes:
+      release_summary: Bump version of nextcloud and caddy.
+    fragments:
+    - 29.0.4.yml
+    release_date: '2024-08-07'
   9.0.1-dev:
     changes:
       bugfixes:

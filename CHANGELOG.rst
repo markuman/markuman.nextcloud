@@ -4,6 +4,14 @@ markuman nextcloud Release Notes
 
 .. contents:: Topics
 
+v29.0.4
+=======
+
+Release Summary
+---------------
+
+Bump version of nextcloud and caddy.
+
 v29.0.2
 =======
 
