@@ -1,0 +1,159 @@
+---
+argument_specs:
+  main:
+    short_description: Install nextcloud on a dedicated Debian 13 server
+    description:
+      - Installs nextcloud with nginx, modsecurity (OWASP CRS), php-fpm, mariadb, redis and coturn.
+    options:
+      nextcloud_fqdn:
+        type: str
+        required: true
+        description: Fully qualified domain name of the nextcloud instance.
+      nextcloud_admin_user:
+        type: str
+        required: true
+        description: Name of the nextcloud admin user.
+      nextcloud_admin_password:
+        type: str
+        required: true
+        description: Password of the nextcloud admin user.
+      nextcloud_db_password:
+        type: str
+        required: true
+        description: Password of the nextcloud database user.
+      nextcloud_system_user:
+        type: str
+        required: true
+        description: Linux user for ssh access (with sudo).
+      nextcloud_system_user_ssh_key:
+        type: str
+        required: true
+        description: SSH public key(s) or an url to them (e.g. https://github.com/<user>.keys).
+      nextcloud_letsencrypt_mail:
+        type: str
+        description: Mail address for let's encrypt. Required with O(nextcloud_tls_mode=letsencrypt).
+      nextcloud_version:
+        type: str
+        default: 35.0.2
+        description: Nextcloud version for new installations. Updates are done with the nextcloud updater / occ upgrade.
+      nextcloud_php_version:
+        type: str
+        default: "8.4"
+        description: PHP version (Debian 13 ships 8.4).
+      nextcloud_webroot:
+        type: path
+        default: /var/www/nextcloud
+        description: Installation directory.
+      nextcloud_data_dir:
+        type: path
+        default: /var/www/nextcloud/data
+        description: Data directory.
+      nextcloud_db_name:
+        type: str
+        default: nextcloud
+        description: Database name.
+      nextcloud_db_user:
+        type: str
+        default: nextcloud
+        description: Database user.
+      nextcloud_install_talk:
+        type: bool
+        default: true
+        description: Install talk (spreed) and coturn.
+      nextcloud_install_media:
+        type: bool
+        default: true
+        description: Install memories, previewgenerator, recognize and the office apps.
+      nextcloud_install_redis:
+        type: bool
+        default: true
+        description: Install redis for file locking.
+      nextcloud_apps:
+        type: list
+        elements: str
+        default: [bruteforcesettings, twofactor_totp]
+        description: Additional nextcloud apps to install and enable.
+      nextcloud_default_phone_region:
+        type: str
+        default: ""
+        description: ISO 3166-1 country code, e.g. V(DE).
+      nextcloud_extra_config:
+        type: dict
+        default: {}
+        description: Additional settings in C(occ config:import) format (keys C(system) and C(apps)).
+      nextcloud_tls_mode:
+        type: str
+        default: letsencrypt
+        choices: [letsencrypt, selfsigned]
+        description: Source of the TLS certificate. V(selfsigned) uses the Debian snakeoil certificate.
+      nextcloud_max_upload_size:
+        type: str
+        default: 10G
+        description: Maximum upload size (nginx and php).
+      nextcloud_hsts_max_age:
+        type: int
+        default: 31536000
+        description: HSTS max-age in seconds, V(0) disables the header.
+      nextcloud_modsecurity_engine:
+        type: str
+        default: "On"
+        choices: ["On", "DetectionOnly", "Off"]
+        description: ModSecurity SecRuleEngine.
+      nextcloud_modsecurity_paranoia_level:
+        type: int
+        default: 1
+        choices: [1, 2, 3, 4]
+        description: OWASP CRS paranoia level.
+      nextcloud_php_memory_limit:
+        type: str
+        default: 1G
+        description: PHP memory_limit.
+      nextcloud_php_fpm:
+        type: dict
+        description: php-fpm process manager settings (max_children, start_servers, min_spare_servers, max_spare_servers).
+      nextcloud_opcache_interned_strings_buffer:
+        type: int
+        default: 16
+        description: opcache.interned_strings_buffer
+      nextcloud_innodb_buffer_pool_size:
+        type: str
+        default: 1G
+        description: MariaDB innodb_buffer_pool_size.
+      nextcloud_remove_unused_authtokens_after_days:
+        type: int
+        default: 21
+        description: Delete app tokens unused for this many days, V(0) disables it.
+      nextcloud_coturn_listening_ip:
+        type: str
+        description: IP coturn listens on. Defaults to the default ipv4 address.
+      nextcloud_manage_hostname:
+        type: bool
+        default: true
+        description: Set hostname and /etc/hosts entry from O(nextcloud_fqdn).
+      nextcloud_firewall:
+        type: bool
+        default: true
+        description: Configure and enable ufw.
+      nextcloud_reboot:
+        type: bool
+        default: true
+        description: Reboot when /var/run/reboot-required exists.
+      nextcloud_os_hardening:
+        type: bool
+        default: true
+        description: Apply devsec.hardening.os_hardening.
+      nextcloud_ssh_hardening:
+        type: bool
+        default: true
+        description: Apply devsec.hardening.ssh_hardening.
+      nextcloud_os_auditd_max_log_file_action:
+        type: str
+        default: rotate
+        description: Passed to os_hardening as os_auditd_max_log_file_action.
+      nextcloud_ssh_allow_users:
+        type: str
+        description: Passed to ssh_hardening as ssh_allow_users. Defaults to O(nextcloud_system_user).
+      nextcloud_ssh_max_auth_retries:
+        type: int
+        default: 5
+        description: Passed to ssh_hardening as ssh_max_auth_retries.

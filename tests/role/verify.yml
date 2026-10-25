@@ -1,0 +1,140 @@
+---
+- name: Prepare verification
+  hosts: nextcloud
+  gather_facts: false
+
+  tasks:
+    - name: Create a second user for user module tests
+      ansible.builtin.command: php /var/www/nextcloud/occ user:add --password-from-env --display-name "Test User" testuser
+      become: true
+      become_user: www-data
+      environment:
+        OC_PASS: "testuser_password_123!"
+      register: user_add
+      changed_when: user_add.rc == 0
+      failed_when: user_add.rc != 0 and 'already exists' not in user_add.stdout
+
+    - name: Nextcloud setup checks
+      ansible.builtin.command: php /var/www/nextcloud/occ setupchecks --output=json
+      become: true
+      become_user: www-data
+      register: setupchecks
+      changed_when: false
+      failed_when: false
+
+    - name: Show failed setup checks
+      ansible.builtin.debug:
+        msg: >-
+          {{ setupchecks.stdout | from_json | dict2items
+             | map(attribute='value') | map('dict2items') | flatten
+             | selectattr('value.severity', 'in', ['warning', 'error'])
+             | map(attribute='key') | list }}
+      when: setupchecks.rc == 0 or setupchecks.stdout is search('^\{')
+
+
+- name: Run the collection integration tests against nginx + modsecurity
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    nc_host: "localhost:{{ role_test_https_port }}"
+    nc_user: ansible
+    nc_token: nextcloud_collection
+    nc_ssl_mode: skip
+
+  module_defaults:
+    group/markuman.nextcloud.nextcloud:
+      host: "{{ nc_host }}"
+      user: "{{ nc_user }}"
+      api_token: "{{ nc_token }}"
+      ssl_mode: "{{ nc_ssl_mode }}"
+
+  tasks:
+    - name: Security headers and http redirect
+      ansible.builtin.uri:
+        url: "https://{{ nc_host }}/status.php"
+        validate_certs: false
+        return_content: true
+      register: status
+
+    - name: Verify status and headers
+      ansible.builtin.assert:
+        that:
+          - status.json.installed
+          - status.json.versionstring is version('35', '>=')
+          - status.strict_transport_security is defined
+          - status.x_content_type_options == 'nosniff'
+
+    - name: Modsecurity blocks an obvious attack
+      ansible.builtin.uri:
+        url: "https://{{ nc_host }}/index.php?id=1%27%20OR%201=1--%20&x=<script>alert(1)</script>"
+        validate_certs: false
+        status_code: 403
+
+    - name: Data directory is not reachable
+      ansible.builtin.uri:
+        url: "https://{{ nc_host }}/data/nextcloud.log"
+        validate_certs: false
+        status_code: 404
+
+    - name: Temporary file for a large upload
+      ansible.builtin.tempfile:
+        suffix: .bin
+      register: large_file
+
+    - name: Create a large file (WAF body limit is 13M)
+      ansible.builtin.command: "dd if=/dev/urandom of={{ large_file.path }} bs=1M count=64"
+      changed_when: true
+
+    - name: Upload large file through modsecurity
+      markuman.nextcloud.file:
+        mode: put
+        src: "{{ large_file.path }}"
+        dest: large.bin
+      register: out
+
+    - name: Large file uploaded
+      ansible.builtin.assert:
+        that:
+          - out is changed
+
+    - name: Large file has the right size
+      markuman.nextcloud.file_info:
+        src: large.bin
+      register: out
+
+    - name: Verify large file size
+      ansible.builtin.assert:
+        that:
+          - out.file_info.size == 67108864
+
+    - name: Delete large file
+      markuman.nextcloud.file:
+        mode: delete
+        src: large.bin
+
+    - name: Delete local large file
+      ansible.builtin.file:
+        path: "{{ large_file.path }}"
+        state: absent
+
+    - name: Info integration test
+      ansible.builtin.include_role:
+        name: info
+
+    - name: User integration test
+      ansible.builtin.include_role:
+        name: user
+
+    - name: File integration test
+      ansible.builtin.include_role:
+        name: file
+
+    - name: Passwords integration test
+      ansible.builtin.include_role:
+        name: passwords
+
+    - name: Talk integration test
+      ansible.builtin.include_role:
+        name: talk

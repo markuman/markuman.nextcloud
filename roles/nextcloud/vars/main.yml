@@ -1,0 +1,79 @@
+---
+nextcloud_php_fpm_socket: "/run/php/php{{ nextcloud_php_version }}-fpm-nextcloud.sock"
+nextcloud_occ: "php {{ nextcloud_webroot }}/occ"
+nextcloud_mariadb_socket: /run/mysqld/mysqld.sock
+nextcloud_coturn_secret_file: /etc/turnserver.secret
+nextcloud_acme_webroot: /var/www/letsencrypt
+
+nextcloud_tls_certificate: >-
+  {{ '/etc/letsencrypt/live/' ~ nextcloud_fqdn ~ '/fullchain.pem'
+     if nextcloud_tls_mode == 'letsencrypt' else '/etc/ssl/certs/ssl-cert-snakeoil.pem' }}
+nextcloud_tls_certificate_key: >-
+  {{ '/etc/letsencrypt/live/' ~ nextcloud_fqdn ~ '/privkey.pem'
+     if nextcloud_tls_mode == 'letsencrypt' else '/etc/ssl/private/ssl-cert-snakeoil.key' }}
+
+nextcloud_packages:
+  - acl
+  - fail2ban
+  - gpg
+  - imagemagick
+  - libmagickcore-7.q16-10-extra
+  - mariadb-client
+  - mariadb-server
+  - python3-pymysql
+  - sudo
+  - unzip
+  - vnstat
+  - "php{{ nextcloud_php_version }}-apcu"
+  - "php{{ nextcloud_php_version }}-bcmath"
+  - "php{{ nextcloud_php_version }}-bz2"
+  - "php{{ nextcloud_php_version }}-curl"
+  - "php{{ nextcloud_php_version }}-fpm"
+  - "php{{ nextcloud_php_version }}-gd"
+  - "php{{ nextcloud_php_version }}-gmp"
+  - "php{{ nextcloud_php_version }}-imagick"
+  - "php{{ nextcloud_php_version }}-intl"
+  - "php{{ nextcloud_php_version }}-mbstring"
+  - "php{{ nextcloud_php_version }}-mysql"
+  - "php{{ nextcloud_php_version }}-xml"
+  - "php{{ nextcloud_php_version }}-zip"
+
+nextcloud_web_packages:
+  - certbot
+  - libnginx-mod-http-modsecurity
+  - modsecurity-crs
+  - nginx
+  - ssl-cert
+
+nextcloud_base_config:
+  system:
+    trusted_domains:
+      - localhost
+      - "{{ nextcloud_fqdn }}"
+    overwrite.cli.url: "https://{{ nextcloud_fqdn }}"
+    overwriteprotocol: https
+    memcache.local: \OC\Memcache\APCu
+    maintenance_window_start: 1
+  apps:
+    core:
+      backgroundjobs_mode: cron
+
+nextcloud_redis_config:
+  system:
+    memcache.locking: \OC\Memcache\Redis
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 0.0
+
+nextcloud_talk_apps:
+  - spreed
+
+nextcloud_media_apps: >-
+  {{ ['memories', 'previewgenerator', 'recognize', 'richdocuments']
+     + (['richdocumentscode'] if ansible_facts['architecture'] == 'x86_64' else []) }}
+
+nextcloud_all_apps: >-
+  {{ nextcloud_apps
+     + (nextcloud_talk_apps if nextcloud_install_talk else [])
+     + (nextcloud_media_apps if nextcloud_install_media else []) }}

@@ -1,19 +1,118 @@
-- name: get nc users
+---
+- name: Get nc users
   markuman.nextcloud.user_info:
   register: out
 
-- name: only one user exists
-  assert:
+- name: Admin and test user exist
+  ansible.builtin.assert:
     that:
-      - out.users |count == 1
+      - out is not changed
+      - out.users | sort == ['ansible', 'testuser']
 
-- name: get user details from admin user
+- name: Get user details from admin user
   markuman.nextcloud.user_info:
-      username: ansible
+    username: ansible
   register: out
 
-- name: verify admin user
-  assert:
+- name: Verify admin user
+  ansible.builtin.assert:
     that:
+      - out.users == ['ansible']
       - "'admin' in out.user_data.groups"
       - out.user_data.quota.quota == -3
+      - out.user_data.enabled
+
+- name: Get user details of not existing user
+  markuman.nextcloud.user_info:
+    username: does-not-exist
+  register: out
+
+- name: Verify not existing user
+  ansible.builtin.assert:
+    that:
+      - out.users == []
+      - out.user_data == {}
+
+- name: Check_mode disable testuser
+  markuman.nextcloud.user:
+    username: testuser
+    enable: false
+  check_mode: true
+  diff: true
+  register: out
+
+- name: Check_mode disable is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.diff.before.enabled
+      - not out.diff.after.enabled
+
+- name: Disable testuser
+  markuman.nextcloud.user:
+    username: testuser
+    enable: false
+  register: out
+
+- name: Disable is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - not out.user_data.enabled
+
+- name: Disable testuser again
+  markuman.nextcloud.user:
+    username: testuser
+    enable: false
+  register: out
+
+- name: Disable is idempotent
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+
+- name: Testuser is disabled
+  markuman.nextcloud.user_info:
+    username: testuser
+  register: out
+
+- name: Verify testuser is disabled
+  ansible.builtin.assert:
+    that:
+      - not out.user_data.enabled
+
+- name: Enable testuser
+  markuman.nextcloud.user:
+    username: testuser
+    enable: true
+  register: out
+
+- name: Enable is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.user_data.enabled
+
+- name: Only read testuser
+  markuman.nextcloud.user:
+    username: testuser
+  register: out
+
+- name: Without enable nothing changes
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+      - out.user_data.id == 'testuser'
+
+- name: Not existing user fails
+  markuman.nextcloud.user:
+    username: does-not-exist
+    enable: true
+  register: out
+  ignore_errors: true
+
+- name: Verify failure
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'does not exist' in out.msg"

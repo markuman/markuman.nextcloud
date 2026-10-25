@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+#
+# additions to the nextcloud exclusions shipped with the OWASP CRS
+
+# webdav uploads: binary content, can be larger than SecRequestBodyLimit
+SecRule REQUEST_METHOD "@rx ^(?:PUT|MOVE|COPY)$" \
+  "id:1000,\
+  phase:1,\
+  pass,\
+  nolog,\
+  t:none,\
+  chain"
+  SecRule REQUEST_FILENAME "@rx ^/(?:remote|public)\.php/" \
+    "t:none,\
+    ctl:requestBodyAccess=Off"
+
+# the OCS API (users, groups, talk, ...) uses PUT and DELETE,
+# the CRS exclusions only allow them for files_sharing.
+# phase 2, because tx.allowed_methods is initialized in phase 1.
+SecRule REQUEST_FILENAME "@rx ^/ocs/v[12]\.php/" \
+  "id:1010,\
+  phase:2,\
+  pass,\
+  nolog,\
+  t:none,\
+  setvar:'tx.allowed_methods=%{tx.allowed_methods} PUT PATCH DELETE'"

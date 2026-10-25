@@ -1,0 +1,19 @@
+; {{ ansible_managed }}
+
+cgi.fix_pathinfo = 0
+memory_limit = {{ nextcloud_php_memory_limit }}
+upload_max_filesize = {{ nextcloud_max_upload_size }}
+post_max_size = {{ nextcloud_max_upload_size }}
+max_execution_time = 3600
+max_input_time = 3600
+output_buffering = 0
+
+opcache.enable = 1
+opcache.enable_cli = 1
+opcache.memory_consumption = 128
+opcache.interned_strings_buffer = {{ nextcloud_opcache_interned_strings_buffer }}
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 60
+opcache.save_comments = 1
+
+apc.enable_cli = 1

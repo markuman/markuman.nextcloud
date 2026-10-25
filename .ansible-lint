@@ -1,0 +1,4 @@
+---
+exclude_paths:
+  - changelogs/
+  - tests/output/

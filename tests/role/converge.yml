@@ -1,0 +1,30 @@
+---
+- name: Apply markuman.nextcloud.nextcloud role
+  hosts: nextcloud
+  gather_facts: true
+
+  vars:
+    nextcloud_fqdn: nextcloud.test
+    nextcloud_admin_user: ansible
+    nextcloud_admin_password: nextcloud_collection
+    nextcloud_db_password: db_password_for_testing
+    nextcloud_system_user: cloudadmin
+    nextcloud_system_user_ssh_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl test@example
+    nextcloud_tls_mode: selfsigned
+    nextcloud_apps:
+      - bruteforcesettings
+      - twofactor_totp
+      - passwords
+    nextcloud_default_phone_region: DE
+    nextcloud_innodb_buffer_pool_size: 256M
+    nextcloud_install_media: false
+    nextcloud_coturn_listening_ip: 0.0.0.0
+    # not possible inside a container
+    nextcloud_manage_hostname: false
+    nextcloud_firewall: false
+    nextcloud_os_hardening: false
+    nextcloud_ssh_hardening: false
+    nextcloud_reboot: false
+
+  roles:
+    - markuman.nextcloud.nextcloud

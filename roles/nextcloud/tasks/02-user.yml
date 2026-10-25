@@ -1,30 +1,36 @@
-- name: add ubuntu nextcloud system user
+---
+- name: Add nextcloud system user
   ansible.builtin.user:
-    name: "{{ ubuntu_nextcloud_user }}"
+    name: "{{ nextcloud_system_user }}"
     shell: /bin/bash
-    comment: Ubuntu Nextcloud System User
+    comment: Nextcloud System User
     password_expire_max: 99999
     groups:
       - www-data
       - sudo
+    append: true
 
-- name: set authorized_keys file for ubuntu nextcloud user
+- name: Set authorized_keys for nextcloud system user
   ansible.posix.authorized_key:
-    user: "{{ ubuntu_nextcloud_user }}"
+    user: "{{ nextcloud_system_user }}"
     state: present
     manage_dir: true
-    key: "{{ ubuntu_nextcloud_user_ssh_key_location }}"
+    key: "{{ nextcloud_system_user_ssh_key }}"
 
-- name: Allow ubuntu_nextcloud_user to use sudo without password
+- name: Allow nextcloud system user to use sudo without password
   ansible.builtin.copy:
-    dest: /etc/sudoers.d/ubuntu_nextcloud_user
+    dest: /etc/sudoers.d/nextcloud_system_user
     validate: visudo -cf %s
     owner: root
     group: root
-    mode: 0644
+    mode: "0440"
     content: |
-      {{ ubuntu_nextcloud_user }} ALL=(ALL) NOPASSWD:ALL
+      {{ nextcloud_system_user }} ALL=(ALL) NOPASSWD:ALL
 
-- name: ssh hardening
+- name: SSH hardening
   ansible.builtin.include_role:
     name: devsec.hardening.ssh_hardening
+  vars:
+    ssh_allow_users: "{{ nextcloud_ssh_allow_users }}"
+    ssh_max_auth_retries: "{{ nextcloud_ssh_max_auth_retries }}"
+  when: nextcloud_ssh_hardening

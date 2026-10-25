@@ -1,0 +1,114 @@
+---
+- name: Install nginx, modsecurity and certbot
+  ansible.builtin.apt:
+    name: "{{ nextcloud_web_packages }}"
+    state: present
+
+- name: Disable default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: Create acme webroot
+  ansible.builtin.file:
+    path: "{{ nextcloud_acme_webroot }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Modsecurity rules for nextcloud
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/nginx/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - modsecurity_nextcloud.conf
+    - modsecurity_nextcloud_exclusions.conf
+  notify: Reload nginx
+
+- name: Nextcloud security headers snippet
+  ansible.builtin.template:
+    src: nextcloud-headers.conf.j2
+    dest: /etc/nginx/snippets/nextcloud-headers.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Check for TLS certificate
+  ansible.builtin.stat:
+    path: "{{ nextcloud_tls_certificate }}"
+  register: nextcloud_tls_certificate_stat
+
+- name: Nextcloud nginx site
+  ansible.builtin.template:
+    src: nginx-nextcloud.conf.j2
+    dest: /etc/nginx/sites-available/nextcloud.conf
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    nextcloud_https_enabled: "{{ nextcloud_tls_certificate_stat.stat.exists }}"
+  notify: Reload nginx
+
+- name: Enable nextcloud nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/nextcloud.conf
+    dest: /etc/nginx/sites-enabled/nextcloud.conf
+    state: link
+  notify: Reload nginx
+
+- name: Ensure nginx is started and enabled
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Reload nginx before requesting a certificate
+  ansible.builtin.meta: flush_handlers
+
+- name: Let's encrypt
+  when: nextcloud_tls_mode == 'letsencrypt'
+  block:
+    - name: Request let's encrypt certificate
+      ansible.builtin.command:
+        cmd: >-
+          certbot certonly --non-interactive --agree-tos
+          --email {{ nextcloud_letsencrypt_mail }}
+          --webroot --webroot-path {{ nextcloud_acme_webroot }}
+          --domain {{ nextcloud_fqdn }}
+        creates: "{{ nextcloud_tls_certificate }}"
+
+    - name: Ensure certbot renewal timer is enabled
+      ansible.builtin.systemd_service:
+        name: certbot.timer
+        state: started
+        enabled: true
+
+    - name: Reload nginx after certificate renewal
+      ansible.builtin.copy:
+        dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          systemctl reload nginx
+
+    - name: Nextcloud nginx site with https
+      ansible.builtin.template:
+        src: nginx-nextcloud.conf.j2
+        dest: /etc/nginx/sites-available/nextcloud.conf
+        owner: root
+        group: root
+        mode: "0644"
+      vars:
+        nextcloud_https_enabled: true
+      notify: Reload nginx
+
+- name: Reload nginx after nginx configuration
+  ansible.builtin.meta: flush_handlers

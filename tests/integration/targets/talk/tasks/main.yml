@@ -1,0 +1,86 @@
+---
+- name: Create a talk conversation
+  ansible.builtin.uri:
+    url: "https://{{ nc_host }}/ocs/v2.php/apps/spreed/api/v4/room"
+    method: POST
+    user: "{{ nc_user }}"
+    password: "{{ nc_token }}"
+    force_basic_auth: true
+    validate_certs: false
+    headers:
+      OCS-APIRequest: "true"
+      Accept: application/json
+    body_format: json
+    body:
+      roomType: 3
+      roomName: ansible-integration-test
+    status_code: [200, 201]
+  register: room
+
+- name: Remember conversation token
+  ansible.builtin.set_fact:
+    talk_token: "{{ room.json.ocs.data.token }}"
+
+- name: Check_mode send message
+  markuman.nextcloud.talk:
+    msg: "check mode message"
+    channel: "{{ talk_token }}"
+  check_mode: true
+  register: out
+
+- name: Check_mode reports changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+
+- name: Send message
+  markuman.nextcloud.talk:
+    msg: "hello from ansible ✓"
+    channel: "{{ talk_token }}"
+  register: out
+
+- name: Message was sent
+  ansible.builtin.assert:
+    that:
+      - out is changed
+
+- name: Run a playbook with the talk callback enabled
+  ansible.builtin.command:
+    cmd: "ansible-playbook {{ role_path }}/files/callback.yml"
+  environment:
+    ANSIBLE_CALLBACKS_ENABLED: markuman.nextcloud.talk
+    NEXTCLOUD_HOST: "{{ nc_host }}"
+    NEXTCLOUD_USER: "{{ nc_user }}"
+    NEXTCLOUD_TOKEN: "{{ nc_token }}"
+    NEXTCLOUD_SSL_MODE: "{{ nc_ssl_mode }}"
+    NEXTCLOUD_TALK_CALLBACK_CHANNEL: "{{ talk_token }}"
+  register: callback_run
+  changed_when: false
+
+- name: Callback did not complain
+  ansible.builtin.assert:
+    that:
+      - "'markuman.nextcloud.talk' not in callback_run.stderr"
+
+- name: Fetch messages of the conversation
+  ansible.builtin.uri:
+    url: "https://{{ nc_host }}/ocs/v2.php/apps/spreed/api/v1/chat/{{ talk_token }}?lookIntoFuture=0&limit=50"
+    user: "{{ nc_user }}"
+    password: "{{ nc_token }}"
+    force_basic_auth: true
+    validate_certs: false
+    headers:
+      OCS-APIRequest: "true"
+      Accept: application/json
+  register: chat
+
+- name: Verify messages
+  vars:
+    messages: "{{ chat.json.ocs.data | map(attribute='message') | list }}"
+  ansible.builtin.assert:
+    that:
+      - "'hello from ansible ✓' in messages"
+      - "'check mode message' not in messages"
+      - "messages | select('search', 'Playbook: .*callback.yml') | list | length == 1"
+      - "messages | select('search', 'TASK\\[Callback test task\\] localhost: ansible.builtin.debug - OK') | list | length == 1"
+    fail_msg: "{{ messages }}"

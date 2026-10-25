@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 DOCUMENTATION = '''
 module: info
-short_description: receive informations about nextcloud server
+short_description: receive information about nextcloud server
 description:
-  - receive informations about nextcloud server
+  - receive information (version and capabilities) about nextcloud server
 version_added: "9.0.0"
 author:
   - "Markus Bergholz (@markuman)"
@@ -20,26 +17,33 @@ notes:
 '''
 
 EXAMPLES = '''
-    - name: receive informations
-      markuman.nextcloud.info:
-      register: out
+- name: receive information
+  markuman.nextcloud.info:
+  register: out
+'''
+
+RETURN = '''
+nextcloud:
+  description: Version and capabilities of the nextcloud server.
+  returned: always
+  type: dict
+  sample: {"version": {"major": 35, "minor": 0, "micro": 1, "string": "35.0.1"}, "capabilities": {}}
 '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
-from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_spects
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_specs
 
 
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
-        argument_spec=parameter_spects(dict())
+        argument_spec=parameter_specs(dict())
     )
 
     nc = NextcloudHandler(module.params, module.fail_json)
 
-    retval = nc.get('/ocs/v1.php/cloud/capabilities').json()
-    module.exit_json(nextcloud=retval.get('ocs').get('data'))
+    module.exit_json(changed=False, nextcloud=nc.ocs('GET', 'ocs/v2.php/cloud/capabilities'))
 
 
 if __name__ == '__main__':

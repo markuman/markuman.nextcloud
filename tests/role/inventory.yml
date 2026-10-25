@@ -1,0 +1,12 @@
+---
+all:
+  vars:
+    role_test_container: nextcloud-role-test
+    role_test_https_port: 28443
+    role_test_http_port: 28080
+  children:
+    nextcloud:
+      hosts:
+        nextcloud-role-test:
+          ansible_connection: containers.podman.podman
+          ansible_python_interpreter: /usr/bin/python3

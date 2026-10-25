@@ -1,8 +1,33 @@
-- name: nextcloud informations
+---
+- name: Nextcloud information
   markuman.nextcloud.info:
   register: out
 
-- name: verify nextcloud version
-  assert:
+- name: Verify nextcloud version
+  ansible.builtin.assert:
     that:
-      - out.nextcloud.version.major >= 24
+      - out is not changed
+      - out.nextcloud.version.major >= 30
+      - out.nextcloud.capabilities is mapping
+
+- name: Wrong credentials fail with a useful message
+  markuman.nextcloud.info:
+    api_token: wrong
+  register: out
+  ignore_errors: true
+
+- name: Verify failure
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'401' in out.msg"
+
+- name: Host as full url works too
+  markuman.nextcloud.info:
+    host: "https://{{ nc_host }}/"
+  register: out
+
+- name: Verify full url
+  ansible.builtin.assert:
+    that:
+      - out.nextcloud.version.major >= 30

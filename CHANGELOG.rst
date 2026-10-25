@@ -4,6 +4,96 @@ markuman nextcloud Release Notes
 
 .. contents:: Topics
 
+v35.0.0
+=======
+
+Release Summary
+---------------
+
+Major release after two years without updates. Tested against ansible-core 2.21 and Nextcloud 35.
+The install role was rewritten for Debian 13 with nginx and ModSecurity.
+The modules got a lot of bugfixes and the integration tests run with podman now.
+
+Major Changes
+-------------
+
+- collection - requires ansible-core >= 2.17 and Python 3.
+- nextcloud install role - rewritten for Debian 13 (trixie) with php 8.4, mariadb 11.8, nginx, ModSecurity v3 and the OWASP CRS. Ubuntu and caddy are no longer supported.
+
+Minor Changes
+-------------
+
+- CI - woodpecker configuration uses the current ``steps`` format, nextcloud 35 and runs ``ansible-test sanity``.
+- all modules - ``InsecureRequestWarning`` is no longer printed with ``ssl_mode=skip``.
+- all modules - ``host`` also accepts a full base url like ``https://example.com/nextcloud``.
+- all modules - ``ssl_mode`` has choices and all connection options have env fallbacks (``NEXTCLOUD_HOST``, ``NEXTCLOUD_USER``, ``NEXTCLOUD_TOKEN``, ``NEXTCLOUD_SSL_MODE``).
+- all modules - added ``RETURN`` documentation.
+- all modules - use OCS v2 API endpoints, a requests session and timeouts. Error messages contain the http status and the message of nextcloud.
+- file - ``mode`` and ``overwrite`` have choices now.
+- file - ``overwrite=different`` works for ``mode=put`` as well.
+- file - downloads are streamed to disk and moved atomically instead of being held in memory.
+- file - uploads into a missing folder fail with a clear error message.
+- integration tests - run with podman against the official nextcloud image, including talk and the talk callback.
+- lookup plugins - options are documented and can be set with ``NEXTCLOUD_*`` env variables.
+- nextcloud install role - ModSecurity runs with the OWASP CRS nextcloud exclusions plus own exclusions for large webdav uploads (``SecRequestBodyLimitAction ProcessPartial``) and ``PUT``/``PATCH``/``DELETE`` on the OCS API. Use ``nextcloud_modsecurity_engine=DetectionOnly`` for tuning.
+- nextcloud install role - argument specs for all variables.
+- nextcloud install role - background jobs use cron mode.
+- nextcloud install role - coturn secret is generated once and the turn server is only added once to talk. coturn denies private peer ips.
+- nextcloud install role - mariadb settings are placed in ``mariadb.conf.d/90-nextcloud.cnf``, ``innodb_log_file_size`` is 256M and the slow query log is enabled.
+- nextcloud install role - nextcloud configuration is applied idempotently with ``occ config:import``, apps are only installed if missing.
+- nextcloud install role - nextcloud download is verified with gpgv against a dedicated keyring.
+- nextcloud install role - nginx configuration follows the current nextcloud documentation and uses ``http2 on`` instead of the deprecated ``listen ... http2``.
+- nextcloud install role - php-fpm uses an own ``nextcloud`` pool and php settings are placed in ``conf.d/90-nextcloud.ini`` instead of editing ``php.ini``.
+- nextcloud install role - redis, fail2ban, php-fpm, nginx, mariadb, coturn and the certbot timer are explicitly started and enabled.
+- nextcloud install role - runs ``occ maintenance:repair --include-expensive`` after a new installation.
+- passwords lookup - supports multiple terms.
+- role tests - ``make test-role`` runs the role in a Debian 13 systemd container and the module integration tests against it.
+- talk - supports check mode.
+- talk callback - options are documented (``NEXTCLOUD_TALK_CALLBACK_CHANNEL`` or ini) and errors are shown as warnings instead of breaking the playbook.
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- collection - depends on ``ansible.mariadb`` instead of ``community.mysql`` and ``devsec.hardening`` >= 10.5.1.
+- file_info - ``file_id``, ``size`` and ``favorite`` of folders are integers now (like for files).
+- nextcloud install role - ``mariadb_root_password`` was removed, root uses ``unix_socket`` authentication. The ``devsec.hardening.mysql_hardening`` role is no longer used.
+- nextcloud install role - ``ssh_kex``, ``ssh_macs`` and ``ssh_ciphers`` were removed, the defaults of ``devsec.hardening`` (including post-quantum key exchange) are used.
+- nextcloud install role - all role variables have the ``nextcloud_`` prefix now, ``ubuntu_nextcloud_user`` is ``nextcloud_system_user``, ``ubuntu_nextcloud_user_ssh_key_location`` is ``nextcloud_system_user_ssh_key``, ``lets_encrypt_mail`` is ``nextcloud_letsencrypt_mail``. See the role README for the full list.
+- nextcloud install role - an existing nextcloud installation is never overwritten by the role anymore. Use the nextcloud updater or ``occ upgrade``.
+- password - ``favorite`` has no default anymore, an existing password keeps its favorite state when ``favorite`` is omitted.
+- user - ``diff`` only contains the ``enabled`` state instead of the complete user as yaml.
+- user - fails if the user does not exist instead of silently doing nothing.
+- user_info - returns an empty ``users`` list and an empty ``user_data`` dict if the requested ``username`` does not exist.
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- nextcloud install role - caddy support.
+
+Bugfixes
+--------
+
+- all modules - a missing ``requests`` library led to a ``NameError`` instead of a useful error message.
+- file - check mode reported a change when deleting a folder without ``delete_recursively``.
+- file - file names with special characters like spaces, ``#`` or ``?`` were not url encoded.
+- file - uploaded files were never closed.
+- lookup plugins - errors were silently ignored because ``AnsibleError`` was created but never raised.
+- nextcloud install role - ``ansible.builtin.ini_file`` does not exist, it is ``community.general.ini_file``.
+- nextcloud install role - ``install_talk`` had no effect.
+- nextcloud install role - ``libmagickcore-6.q16-6-extra`` is only a virtual package on Ubuntu 24.04 and broke the package installation.
+- nextcloud install role - ``nextcloud_db_name`` and ``nextcloud_db_user`` had no effect.
+- nextcloud install role - a new coturn secret was generated on every run and the turn server was added to talk again on every run.
+- nextcloud install role - nextcloud was extracted over an existing installation on every run.
+- nextcloud install role - redis was never explicitly started.
+- password - ``favorite=false`` was sent as string ``False`` which the passwords app treated as ``true``.
+- password - a folder was created in check mode.
+- password - an update reset ``username``, ``url``, ``notes`` and ``favorite`` of the password because the passwords app resets all fields that are not sent.
+- password - changes of ``username``, ``url``, ``notes``, ``favorite`` and ``folder`` of existing passwords were ignored.
+- password - the generated password was sent as list.
+- passwords lookup - only the first term was looked up.
+- talk callback - did not call the ``CallbackBase`` constructor and ``v2_playbook_on_(not_)import_for_host`` crashed with a ``TypeError``.
+- user - enabling or disabling a user failed because a method instead of the headers was handed to requests.
+
 v29.0.4
 =======
 

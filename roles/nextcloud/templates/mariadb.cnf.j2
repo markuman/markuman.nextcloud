@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+[mariadbd]
+bind-address = 127.0.0.1
+local-infile = 0
+
+innodb_buffer_pool_size = {{ nextcloud_innodb_buffer_pool_size }}
+innodb_log_file_size = 256M
+max_allowed_packet = 64M
+
+slow_query_log = 1
+long_query_time = 2
+event_scheduler = ON
+transaction_isolation = READ-COMMITTED
+binlog_format = ROW
+
+query_cache_type = 1
+query_cache_limit = 2M
+query_cache_min_res_unit = 2k
+query_cache_size = 64M
+tmp_table_size = 64M
+max_heap_table_size = 64M

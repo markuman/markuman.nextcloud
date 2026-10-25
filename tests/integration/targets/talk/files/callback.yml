@@ -1,0 +1,10 @@
+---
+- name: Callback test playbook
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Callback test task
+      ansible.builtin.debug:
+        msg: hello from the callback test

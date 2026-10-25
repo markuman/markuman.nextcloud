@@ -1,24 +1,28 @@
-- name: reload ufw
+---
+- name: Reload ufw
   community.general.ufw:
     state: reloaded
 
-- name: restart caddy
-  ansible.builtin.systemd:
-    name: caddy
+- name: Reload systemd
+  ansible.builtin.systemd_service:
     daemon_reload: true
-    state: restarted
 
-- name: restart php-fpm
-  ansible.builtin.systemd:
-    name: php8.3-fpm
-    state: restarted
-
-- name: restart coturn
-  ansible.builtin.systemd:
-    name: coturn
-    state: restarted
-
-- name: restart mariadb
-  ansible.builtin.systemd:
+- name: Restart mariadb
+  ansible.builtin.systemd_service:
     name: mariadb
+    state: restarted
+
+- name: Restart php-fpm
+  ansible.builtin.systemd_service:
+    name: "php{{ nextcloud_php_version }}-fpm"
+    state: restarted
+
+- name: Reload nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: reloaded
+
+- name: Restart coturn
+  ansible.builtin.systemd_service:
+    name: coturn
     state: restarted

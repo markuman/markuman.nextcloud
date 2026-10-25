@@ -1,51 +1,68 @@
-nextcloud_version: 29.0.4
-caddy_version: 2.8.4
+---
+# required, see meta/argument_specs.yml
+# nextcloud_fqdn:
+# nextcloud_admin_user:
+# nextcloud_admin_password:
+# nextcloud_db_password:
+# nextcloud_system_user:
+# nextcloud_system_user_ssh_key:
+# nextcloud_letsencrypt_mail:          # only for nextcloud_tls_mode: letsencrypt
+
+nextcloud_version: 35.0.2
+nextcloud_php_version: "8.4"
+
+nextcloud_webroot: /var/www/nextcloud
+nextcloud_data_dir: "{{ nextcloud_webroot }}/data"
 
 nextcloud_db_name: nextcloud
 nextcloud_db_user: nextcloud
 
 # nextcloud apps
-install_talk: true
-install_media: true
-install_redis: true
+nextcloud_install_talk: true
+nextcloud_install_media: true
+nextcloud_install_redis: true
+nextcloud_apps:
+  - bruteforcesettings
+  - twofactor_totp
 
-# php-fpm
-php_fpm:
+# merged into the generated config.php settings (occ config:import format)
+nextcloud_default_phone_region: ""
+nextcloud_extra_config: {}
+
+# webserver
+# letsencrypt: certificate from let's encrypt via certbot (webroot)
+# selfsigned: debian snakeoil certificate (testing only)
+nextcloud_tls_mode: letsencrypt
+nextcloud_max_upload_size: 10G
+nextcloud_hsts_max_age: 31536000
+# On, DetectionOnly or Off
+nextcloud_modsecurity_engine: "On"
+nextcloud_modsecurity_paranoia_level: 1
+
+# php
+nextcloud_php_memory_limit: 1G
+nextcloud_php_fpm:
   max_children: 120
   start_servers: 12
   min_spare_servers: 8
   max_spare_servers: 40
-
-# php
-opcache:
-  interned_strings_buffer: 16
+nextcloud_opcache_interned_strings_buffer: 16
 
 # mariadb
-innodb_buffer_pool_size: 1G
-remove_unused_authtokens_after_days: 21
+nextcloud_innodb_buffer_pool_size: 1G
+nextcloud_remove_unused_authtokens_after_days: 21
 
-# os hardening
-os_auditd_max_log_file_action: rotate
+# talk / coturn
+nextcloud_coturn_listening_ip: "{{ ansible_facts['default_ipv4']['address'] }}"
 
-# ssh hardening
-ssh_allow_users: "{{ ubuntu_nextcloud_user }}"
-ssh_max_auth_retries: 5
-# mozilla ssh_scan: Modern - with just ETM (encrypt-then-mac) macs
-# https://github.com/mozilla/ssh_scan/blob/master/config/policies/just_etm_macs.yaml
-ssh_kex:
-  - curve25519-sha256@libssh.org
-  - diffie-hellman-group-exchange-sha256
-  - ecdh-sha2-nistp521
-  - ecdh-sha2-nistp384
-  - ecdh-sha2-nistp256
-ssh_macs:
-  - hmac-sha2-512-etm@openssh.com
-  - hmac-sha2-256-etm@openssh.com
-  - umac-128-etm@openssh.com
-ssh_ciphers:
-  - chacha20-poly1305@openssh.com
-  - aes256-gcm@openssh.com
-  - aes128-gcm@openssh.com
-  - aes256-ctr
-  - aes192-ctr
-  - aes128-ctr
+# system
+nextcloud_manage_hostname: true
+nextcloud_firewall: true
+nextcloud_reboot: true
+
+# os and ssh hardening (devsec.hardening)
+nextcloud_os_hardening: true
+nextcloud_ssh_hardening: true
+nextcloud_os_auditd_max_log_file_action: rotate
+nextcloud_ssh_allow_users: "{{ nextcloud_system_user }}"
+nextcloud_ssh_max_auth_retries: 5

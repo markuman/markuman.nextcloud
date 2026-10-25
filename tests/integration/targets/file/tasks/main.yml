@@ -1,71 +1,143 @@
-########### prepair
-- name: Download ansible.svg from wikipedia
-  get_url:
-    url: https://de.wikipedia.org/wiki/Ansible#/media/Datei:Ansible_logo.svg
-    dest: /tmp/ansible.svg
+---
+########### prepare
+- name: Create temporary working directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nextcloud_it
+  register: tmpdir
 
-########### test
-- name: check_mode upload file on nextcloud
+- name: Create local test file
+  ansible.builtin.copy:
+    dest: "{{ tmpdir.path }}/ansible.svg"
+    mode: "0644"
+    content: |
+      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="4"/></svg>
+
+########### put
+- name: Check_mode upload file on nextcloud
   markuman.nextcloud.file:
     mode: put
-    src: /tmp/ansible.svg
+    src: "{{ tmpdir.path }}/ansible.svg"
     dest: ansible.svg
   register: out_state
   check_mode: true
 
-- name: check_mode state must be changed
-  assert:
+- name: Check_mode state must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
-- name: upload file on nextcloud
+- name: Check_mode did not upload anything
+  markuman.nextcloud.file_info:
+    source: ansible.svg
+  register: out_state
+
+- name: File must not exist
+  ansible.builtin.assert:
+    that:
+      - out_state.file_info == {}
+
+- name: Upload file on nextcloud
   markuman.nextcloud.file:
     mode: put
-    src: /tmp/ansible.svg
+    src: "{{ tmpdir.path }}/ansible.svg"
     dest: ansible.svg
   register: out_state
 
-- name: state must be changed
-  assert:
+- name: State must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
-- name: never overwrite upload file on nextcloud
+- name: Never overwrite upload file on nextcloud
   markuman.nextcloud.file:
     mode: put
-    src: /tmp/ansible.svg
+    src: "{{ tmpdir.path }}/ansible.svg"
     dest: ansible.svg
     overwrite: never
   register: out_state
 
-- name: never state must not be changed
-  assert:
+- name: Never state must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: immutable upload file on nextcloud by size
+- name: Immutable upload file on nextcloud by size
   markuman.nextcloud.file:
     mode: put
-    src: /tmp/ansible.svg
+    src: "{{ tmpdir.path }}/ansible.svg"
     dest: ansible.svg
     overwrite: different_size
   register: out_state
 
-- name: immutable state must not be changed
-  assert:
+- name: Immutable state must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: check_mode GET file from nextcloud
+- name: Immutable upload file on nextcloud by checksum
+  markuman.nextcloud.file:
+    mode: put
+    src: "{{ tmpdir.path }}/ansible.svg"
+    dest: ansible.svg
+    overwrite: different
+  register: out_state
+
+- name: Immutable checksum state must not be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is not changed
+
+- name: Upload file with special characters in its name
+  markuman.nextcloud.file:
+    mode: put
+    src: "{{ tmpdir.path }}/ansible.svg"
+    dest: "Spaß mit #hash & space?.svg"
+  register: out_state
+
+- name: Special characters state must be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is changed
+
+- name: File info of file with special characters
+  markuman.nextcloud.file_info:
+    source: "Spaß mit #hash & space?.svg"
+  register: out_state
+
+- name: File with special characters exists
+  ansible.builtin.assert:
+    that:
+      - out_state.file_info.content_type == 'image/svg+xml'
+      - out_state.file_info.size is integer
+      - out_state.file_info.size > 0
+      - out_state.file_info.file_id is integer
+
+- name: Upload into not existing folder fails
+  markuman.nextcloud.file:
+    mode: put
+    src: "{{ tmpdir.path }}/ansible.svg"
+    dest: does/not/exist.svg
+  register: out_state
+  ignore_errors: true
+
+- name: Missing parent folder fails with a useful message
+  ansible.builtin.assert:
+    that:
+      - out_state is failed
+      - "'parent folder does not exist' in out_state.msg"
+
+########### get
+- name: Check_mode GET file from nextcloud
   markuman.nextcloud.file:
     mode: get
     src: ansible.svg
-    dest: /tmp/tmp.svg
+    dest: "{{ tmpdir.path }}/tmp.svg"
   register: out_state
   check_mode: true
 
-- name: check_mode state must be changed
-  assert:
+- name: Check_mode state must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
@@ -73,103 +145,215 @@
   markuman.nextcloud.file:
     mode: get
     src: ansible.svg
-    dest: /tmp/tmp.svg
+    dest: "{{ tmpdir.path }}/tmp.svg"
   register: out_state
 
-- name: state must be changed
-  assert:
+- name: State must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
-- name: immutable OK fetch file from nextcloud
+- name: Downloaded file is identical
+  ansible.builtin.stat:
+    path: "{{ item }}"
+    checksum_algorithm: sha256
+  loop:
+    - "{{ tmpdir.path }}/tmp.svg"
+    - "{{ tmpdir.path }}/ansible.svg"
+  register: checksums
+
+- name: Checksums must match
+  ansible.builtin.assert:
+    that:
+      - checksums.results[0].stat.checksum == checksums.results[1].stat.checksum
+
+- name: Immutable OK fetch file from nextcloud
   markuman.nextcloud.file:
     mode: get
     src: ansible.svg
-    dest: /tmp/ansible.svg
+    dest: "{{ tmpdir.path }}/ansible.svg"
     overwritten: different
   register: out_state
 
-- name: state must not be changed
-  assert:
+- name: State must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: delete file on nextcloud
+- name: Modify local file
+  ansible.builtin.copy:
+    dest: "{{ tmpdir.path }}/tmp.svg"
+    content: modified
+    mode: "0644"
+
+- name: Check_mode fetch different file
   markuman.nextcloud.file:
-    mode: delete
+    mode: get
     src: ansible.svg
+    dest: "{{ tmpdir.path }}/tmp.svg"
+    overwrite: different
+  check_mode: true
   register: out_state
 
-- name: state must be changed
-  assert:
+- name: Check_mode different must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
-- name: immutable delete file on nextcloud
+- name: Fetch different file
+  markuman.nextcloud.file:
+    mode: get
+    src: ansible.svg
+    dest: "{{ tmpdir.path }}/tmp.svg"
+    overwrite: different
+  register: out_state
+
+- name: Different must be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is changed
+
+- name: Never overwrite local file
+  markuman.nextcloud.file:
+    mode: get
+    src: ansible.svg
+    dest: "{{ tmpdir.path }}/tmp.svg"
+    overwrite: never
+  register: out_state
+
+- name: Never must not be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is not changed
+
+- name: Fetch not existing file
+  markuman.nextcloud.file:
+    mode: get
+    src: does-not-exist.svg
+    dest: "{{ tmpdir.path }}/nope.svg"
+  register: out_state
+
+- name: Not existing file must not be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is not changed
+
+########### delete
+- name: Check_mode delete file on nextcloud
+  markuman.nextcloud.file:
+    mode: delete
+    src: ansible.svg
+  check_mode: true
+  register: out_state
+
+- name: Check_mode delete must be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is changed
+
+- name: Delete file on nextcloud
   markuman.nextcloud.file:
     mode: delete
     src: ansible.svg
   register: out_state
 
-- name: state must not be changed
-  assert:
+- name: Delete must be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is changed
+
+- name: Immutable delete file on nextcloud
+  markuman.nextcloud.file:
+    mode: delete
+    src: ansible.svg
+  register: out_state
+
+- name: Immutable delete must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: don't delete recursively
+- name: Delete file with special characters
+  markuman.nextcloud.file:
+    mode: delete
+    src: "Spaß mit #hash & space?.svg"
+  register: out_state
+
+- name: Delete with special characters must be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is changed
+
+- name: Don't delete recursively
   markuman.nextcloud.file:
     source: Photos
     mode: delete
   register: out_state
 
-- name: state must not be changed
-  assert:
+- name: Folder without delete_recursively must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: file info folder
+- name: Check_mode don't delete recursively
+  markuman.nextcloud.file:
+    source: Photos
+    mode: delete
+  check_mode: true
+  register: out_state
+
+- name: Check_mode folder without delete_recursively must not be changed
+  ansible.builtin.assert:
+    that:
+      - out_state is not changed
+
+- name: File info folder
   markuman.nextcloud.file_info:
     source: Photos
   register: out_state
 
-- debug:
-    var: out_state
-
-- name: it's a folder
-  assert:
+- name: It's a folder
+  ansible.builtin.assert:
     that:
-      - "out_state.file_info.content_type == 'inode/directory'"
+      - out_state.file_info.content_type == 'inode/directory'
+      - out_state.file_info.size is integer
 
-- name: delete recursively
+- name: Delete recursively
   markuman.nextcloud.file:
     source: Photos
     mode: delete
     delete_recursively: true
   register: out_state
 
-- name: delete resursively state must be changed
-  assert:
+- name: Delete recursively state must be changed
+  ansible.builtin.assert:
     that:
       - out_state is changed
 
-- name: immutable delete recursively
+- name: Immutable delete recursively
   markuman.nextcloud.file:
     source: Photos
     mode: delete
     delete_recursively: true
   register: out_state
 
-- name: delete resursively state must be changed
-  assert:
+- name: Immutable delete recursively state must not be changed
+  ansible.builtin.assert:
     that:
       - out_state is not changed
 
-- name: file info not existing
+- name: File info not existing
   markuman.nextcloud.file_info:
     source: Photos
   register: out_state
 
-- name: not exist
-  assert:
+- name: Not exist
+  ansible.builtin.assert:
     that:
-      - "out_state.file_info == {}"
+      - out_state.file_info == {}
+
+########### cleanup
+- name: Remove temporary working directory
+  ansible.builtin.file:
+    path: "{{ tmpdir.path }}"
+    state: absent

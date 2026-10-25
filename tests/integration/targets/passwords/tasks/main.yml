@@ -1,213 +1,334 @@
-- name: create passwords
+---
+- name: Passwords tests
   block:
+    - name: Fetch a generated password
+      ansible.builtin.set_fact:
+        generated: >-
+          {{ lookup('markuman.nextcloud.generate_password', host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}
 
-    - name: test fetch generated password
-      debug:
-        var: lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN, ssl_mode=SSL_MODE)
+    - name: Generated password is a non empty string
+      ansible.builtin.assert:
+        that:
+          - generated is string
+          - generated | length > 8
 
-    - name: check_mode create test password - random password set by server
+    - name: Lookup with wrong credentials must fail
+      ansible.builtin.set_fact:
+        nope: "{{ lookup('markuman.nextcloud.generate_password', host=nc_host, user=nc_user, api_token='wrong', ssl_mode=nc_ssl_mode) }}"
+      register: out
+      ignore_errors: true
+
+    - name: Lookup error is not swallowed
+      ansible.builtin.assert:
+        that:
+          - out is failed
+          - "'401' in out.msg"
+
+    - name: Check_mode create test password - random password set by server
       markuman.nextcloud.password:
         name: ansible-test-01
       register: out
       check_mode: true
 
-    - name: check_mode create
-      assert:
+    - name: Check_mode create
+      ansible.builtin.assert:
         that:
           - out is changed
 
-    - name: create test password - random password set by server
-      markuman.nextcloud.password:
-        name: ansible-test-01
-      register: out
-
-    - name: created
-      assert:
-        that:
-          - out is changed
-
-    - name: Retrieve Password with label "ansible-test-01"
-      debug:
-        var: lookup('markuman.nextcloud.passwords', 'ansible-test-01', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN, ssl_mode=SSL_MODE)
-
-    - name: fetched created password
+    - name: Check_mode did not create anything
       markuman.nextcloud.password_info:
         name: ansible-test-01
       register: out
 
-    - name: verify generated password
-      assert:
+    - name: Nothing created
+      ansible.builtin.assert:
         that:
-          - 'out.password[0].statusCode == "GOOD"'
+          - out.password == []
 
-    - name: create test password
+    - name: Create test password - random password set by server
       markuman.nextcloud.password:
-        name: ansible-test-02
-        password: something
+        name: ansible-test-01
       register: out
 
-    - name: created
-      assert:
+    - name: Created
+      ansible.builtin.assert:
         that:
           - out is changed
+          - out.password.id is defined
 
-    - name: fetched created password
-      markuman.nextcloud.password_info:
-        name: ansible-test-02
-      register: out
-
-    - name: verify bad password
-      assert:
-        that:
-          - 'out.password[0].password == "something"'
-          - 'out.password[0].statusCode == "BREACHED"'
-
-    - name: update test password
+    - name: Create test password again
       markuman.nextcloud.password:
-        name: ansible-test-02
-        password: something
+        name: ansible-test-01
       register: out
 
-    - name: not updated
-      assert:
+    - name: Not created twice
+      ansible.builtin.assert:
         that:
           - out is not changed
 
-    - name: check_mode update test password
+    - name: Retrieve Password with label "ansible-test-01"
+      ansible.builtin.set_fact:
+        pw01: >-
+          {{ lookup('markuman.nextcloud.passwords', 'ansible-test-01',
+                    host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}
+
+    - name: Fetched created password
+      markuman.nextcloud.password_info:
+        name: ansible-test-01
+      register: out
+
+    - name: Verify generated password
+      ansible.builtin.assert:
+        that:
+          - out.password | length == 1
+          - out.password[0].statusCode == "GOOD"
+          - out.password[0].password == pw01
+
+    - name: Create test password
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN, ssl_mode=SSL_MODE) }}"
+        password: something
+      register: out
+
+    - name: Created
+      ansible.builtin.assert:
+        that:
+          - out is changed
+
+    - name: Fetched created password
+      markuman.nextcloud.password_info:
+        name: ansible-test-02
+      register: out
+
+    - name: Verify bad password
+      ansible.builtin.assert:
+        that:
+          - out.password[0].password == "something"
+          - out.password[0].statusCode == "BREACHED"
+
+    - name: Update test password with same password
+      markuman.nextcloud.password:
+        name: ansible-test-02
+        password: something
+        update_password: always
+      register: out
+
+    - name: Not updated
+      ansible.builtin.assert:
+        that:
+          - out is not changed
+
+    - name: Check_mode update test password
+      markuman.nextcloud.password:
+        name: ansible-test-02
+        password: "{{ generated }}"
         update_password: always
       check_mode: true
       register: out
 
-    - name: pseudo updated
-      assert:
+    - name: Pseudo updated
+      ansible.builtin.assert:
         that:
           - out is changed
 
-    - name: re-fetched updated password
+    - name: Re-fetched updated password
       markuman.nextcloud.password_info:
         name: ansible-test-02
       register: out
 
-    - name: verify bad password
-      assert:
+    - name: Check_mode did not change the password
+      ansible.builtin.assert:
         that:
-          - 'out.password[0].statusCode == "BREACHED"'
+          - out.password[0].password == "something"
+          - out.password[0].statusCode == "BREACHED"
 
-
-    - name: update test password
+    - name: Update test password on_create only
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN, ssl_mode=SSL_MODE) }}"
+        password: "{{ generated }}"
         update_password: on_create
       register: out
 
-    - name: don't updated
-      assert:
+    - name: Not updated
+      ansible.builtin.assert:
         that:
           - out is not changed
 
-    - name: update test password
+    - name: Update test password
       markuman.nextcloud.password:
         name: ansible-test-02
-        password: "{{ lookup('markuman.nextcloud.generate_password', host=NEXTCLOUD_HOST, user=NEXTCLOUD_USER, api_token=NEXTCLOUD_TOKEN, ssl_mode=SSL_MODE) }}"
+        password: "{{ generated }}"
         update_password: always
       register: out
 
-    - name: updated password
-      assert:
+    - name: Updated password
+      ansible.builtin.assert:
         that:
           - out is changed
 
-    - name: re-fetched updated password
+    - name: Re-fetched updated password
       markuman.nextcloud.password_info:
         name: ansible-test-02
       register: out
 
-    - name: verify updated good password
-      assert:
+    # the passwords app re-checks updated passwords in a background job
+    - name: Verify updated password is no longer breached
+      ansible.builtin.assert:
         that:
-          - 'out.password[0].statusCode == "GOOD"'
+          - out.password[0].password == generated
+          - out.password[0].statusCode in ["GOOD", "NOT_CHECKED"]
 
-    - name: create test password with username
-      markuman.nextcloud.password:
-        name: ansible-test-03
-        password: something
-        username: markus
-
-    - name: create test password with username and url
-      markuman.nextcloud.password:
-        name: ansible-test-04
-        password: something
-        username: markus
-        url: https://nureintest.de
-
-    - name: create test password with username and url and notes
+    - name: Create test password with all attributes
       markuman.nextcloud.password:
         name: ansible-test-05
         password: something
         username: markus
         url: https://nureintest.de
         notes: made with ansible
+        favorite: true
+        folder: ansible-it
       register: out
 
-    - name: fetch created password
+    - name: Created
+      ansible.builtin.assert:
+        that:
+          - out is changed
+
+    - name: Create test password with all attributes again
+      markuman.nextcloud.password:
+        name: ansible-test-05
+        password: something
+        username: markus
+        url: https://nureintest.de
+        notes: made with ansible
+        favorite: true
+        folder: ansible-it
+      register: out
+
+    - name: Idempotent
+      ansible.builtin.assert:
+        that:
+          - out is not changed
+
+    - name: Fetch created password
       markuman.nextcloud.password_info:
         name: ansible-test-05
       register: out
 
-    - name: verify outputs
-      assert:
+    - name: Verify outputs
+      ansible.builtin.assert:
         that:
-          - 'out.password[0].password == "something"'
-          - 'out.password[0].statusCode == "BREACHED"'
-          - 'out.password[0].username == "markus"'
-          - 'out.password[0].notes == "made with ansible"'
-          - 'out.password[0].url == "https://nureintest.de"'
+          - out.password[0].password == "something"
+          - out.password[0].statusCode == "BREACHED"
+          - out.password[0].username == "markus"
+          - out.password[0].notes == "made with ansible"
+          - out.password[0].url == "https://nureintest.de"
+          - out.password[0].favorite
 
-    - name: check_mode delete password
+    - name: Update only the password
+      markuman.nextcloud.password:
+        name: ansible-test-05
+        password: "{{ generated }}"
+        update_password: always
+      register: out
+
+    - name: Updated
+      ansible.builtin.assert:
+        that:
+          - out is changed
+
+    - name: Fetch updated password
+      markuman.nextcloud.password_info:
+        name: ansible-test-05
+      register: out
+
+    - name: All other attributes are preserved
+      ansible.builtin.assert:
+        that:
+          - out.password[0].password == generated
+          - out.password[0].username == "markus"
+          - out.password[0].notes == "made with ansible"
+          - out.password[0].url == "https://nureintest.de"
+          - out.password[0].favorite
+          - out.password[0].folder != "00000000-0000-0000-0000-000000000000"
+
+    - name: Change notes and favorite without touching the password
+      markuman.nextcloud.password:
+        name: ansible-test-05
+        notes: changed notes
+        favorite: false
+      register: out
+
+    - name: Updated
+      ansible.builtin.assert:
+        that:
+          - out is changed
+
+    - name: Fetch updated password
+      markuman.nextcloud.password_info:
+        name: ansible-test-05
+      register: out
+
+    - name: Notes and favorite changed, password preserved
+      ansible.builtin.assert:
+        that:
+          - out.password[0].password == generated
+          - out.password[0].username == "markus"
+          - out.password[0].notes == "changed notes"
+          - not out.password[0].favorite
+
+    - name: Lookup multiple passwords with details
+      ansible.builtin.set_fact:
+        multi: >-
+          {{ query('markuman.nextcloud.passwords', 'ansible-test-02', 'ansible-test-05', details=true,
+                   host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}
+
+    - name: Verify multiple lookup
+      ansible.builtin.assert:
+        that:
+          - multi | length == 2
+          - multi | map(attribute='label') | sort == ['ansible-test-02', 'ansible-test-05']
+
+    - name: Check_mode delete password
       markuman.nextcloud.password:
         name: ansible-test-01
         state: absent
       check_mode: true
       register: out
 
-    - name: check_mode delete
-      assert:
+    - name: Check_mode delete
+      ansible.builtin.assert:
         that:
           - out is changed
 
-    - name: delete password
+    - name: Delete password
       markuman.nextcloud.password:
         name: ansible-test-01
         state: absent
       register: out
 
-    - name: check_mode delete
-      assert:
+    - name: Delete
+      ansible.builtin.assert:
         that:
           - out is changed
 
-    - name: immutable delete password
+    - name: Immutable delete password
       markuman.nextcloud.password:
         name: ansible-test-01
         state: absent
       register: out
 
-    - name: check_mode delete
-      assert:
+    - name: Immutable delete
+      ansible.builtin.assert:
         that:
           - out is not changed
+
   always:
-    - name: delete passwords
+    - name: Delete passwords
       markuman.nextcloud.password:
         name: "{{ item }}"
         state: absent
-      with_items:
+      loop:
         - ansible-test-05
-        - ansible-test-04
-        - ansible-test-03
         - ansible-test-02
         - ansible-test-01

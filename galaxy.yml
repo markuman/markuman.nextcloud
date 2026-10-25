@@ -1,20 +1,29 @@
+---
 namespace: "markuman"
 description: bring up your nextcloud usage to the next level 🚀
 name: "nextcloud"
-version: "29.0.4"
+version: "35.0.0"
 readme: "README.md"
 authors:
-    - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
+  - "Markus Bergholz <markuman+spambelongstogoogle@gmail.com>"
 license:
-    - "GPL-3.0-or-later"
+  - "GPL-3.0-or-later"
 tags:
-    - nextcloud
-    - collection
-    - devops
-    - installation
-    - setup
+  - nextcloud
+  - collection
+  - devops
+  - installation
+  - setup
+  - tools
 repository: "https://github.com/markuman/markuman.nextcloud"
 issues: "https://github.com/markuman/markuman.nextcloud/issues"
 dependencies:
-  devsec.hardening: '>=9.0.0,<10.0.0'
-  community.mysql: '>=3.8.0,<4.0.0'
+  ansible.mariadb: '>=6.0.0,<7.0.0'
+  ansible.posix: '>=1.5.0'
+  community.general: '>=8.0.0'
+  devsec.hardening: '>=10.5.1,<12.0.0'
+build_ignore:
+  - .woodpecker.yml
+  - Makefile
+  - tests/output
+  - "*.tar.gz"

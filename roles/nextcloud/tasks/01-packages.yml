@@ -1,85 +1,106 @@
-- name: set hostname
+---
+- name: Set hostname
   ansible.builtin.hostname:
     name: "{{ nextcloud_fqdn.split('.')[0] }}"
+  when: nextcloud_manage_hostname
 
-- name: complete /etc/hosts
+- name: Complete /etc/hosts
   ansible.builtin.lineinfile:
-    name: /etc/hosts
+    path: /etc/hosts
     line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
+  when: nextcloud_manage_hostname
 
-- name: upgrade all packages first
+- name: Upgrade all packages first
   ansible.builtin.apt:
     update_cache: true
-    state: latest
-    upgrade: true
+    cache_valid_time: 3600
+    upgrade: safe
 
-- name: install php and mariadb
+- name: Install packages
   ansible.builtin.apt:
-    update_cache: true
-    state: latest
-    name:
-      - mariadb-server
-      - mariadb-client
-      - ufw
-      - vnstat
-      - python3-pymysql
-      - unzip
-      - php-fpm
-      - php-gd
-      - php-mysql
-      - php-curl
-      - php-xml
-      - php-zip
-      - php-intl
-      - php-mbstring
-      - php-bz2
-      - php-json
-      - php-apcu
-      - php-imagick
-      - php-gmp
-      - php-bcmath
-      - imagemagick
-      - libmagickcore-6.q16-6-extra
-      - fail2ban
+    name: "{{ nextcloud_packages }}"
+    state: present
 
-- name: install redis
-  when: install_redis
+- name: Install redis
   ansible.builtin.apt:
-    update_cache: true
-    state: latest
     name:
       - redis-server
-      - php8.3-redis
+      - "php{{ nextcloud_php_version }}-redis"
+    state: present
+  when: nextcloud_install_redis
 
-- name: enable ipv6 for ufw
-  ansible.builtin.lineinfile:
-    name: /etc/default/ufw
-    regexp: IPV6=no
-    line: IPV6=yes
-  notify:
-    - reload ufw
+- name: Ensure redis is started and enabled
+  ansible.builtin.systemd_service:
+    name: redis-server
+    state: started
+    enabled: true
+  when: nextcloud_install_redis
 
-- name: ufw rules
-  ansible.builtin.command: "{{ item }}"
-  with_items:
-    - ufw limit ssh comment "incomming ssh with ratelimit"
-    - ufw allow out 22 comment "outgoing ssh"
-    - ufw allow 80 comment "incomming http for caddy"
-    - ufw allow 443 comment "incomming https for caddy"
-    - ufw allow out 80 comment "outgoing http"
-    - ufw allow out 443 comment "outgoing https"
-    - ufw allow out 53/udp comment "outgoing for dns"
-    - ufw allow out 123/udp comment "outgoing for ntp"
-    - ufw allow out 993 comment "outgoing imap ssl"
-    - ufw allow out 465 comment "outgoing smtp ssl"
+- name: Firewall
+  when: nextcloud_firewall
+  block:
+    - name: Install ufw
+      ansible.builtin.apt:
+        name: ufw
+        state: present
 
-- name: ufw enable
-  community.general.ufw:
-    state: enabled
+    - name: Enable ipv6 for ufw
+      ansible.builtin.lineinfile:
+        path: /etc/default/ufw
+        regexp: ^IPV6=
+        line: IPV6=yes
+      notify: Reload ufw
 
-- name: os hardening
+    - name: Limit incoming ssh
+      community.general.ufw:
+        rule: limit
+        port: "22"
+        proto: tcp
+        comment: incoming ssh with ratelimit
+
+    - name: Allow incoming http(s)
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+        comment: incoming http(s) for nginx
+      loop:
+        - "80"
+        - "443"
+
+    - name: Allow outgoing traffic
+      community.general.ufw:
+        rule: allow
+        direction: out
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        comment: "{{ item.comment }}"
+      loop:
+        - {port: "22", proto: tcp, comment: outgoing ssh}
+        - {port: "53", proto: any, comment: outgoing dns}
+        - {port: "80", proto: tcp, comment: outgoing http}
+        - {port: "123", proto: udp, comment: outgoing ntp}
+        - {port: "443", proto: tcp, comment: outgoing https}
+        - {port: "465", proto: tcp, comment: outgoing smtp ssl}
+        - {port: "587", proto: tcp, comment: outgoing smtp submission}
+        - {port: "993", proto: tcp, comment: outgoing imap ssl}
+
+    - name: Enable ufw
+      community.general.ufw:
+        state: enabled
+
+    - name: Ensure fail2ban is started and enabled
+      ansible.builtin.systemd_service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+- name: OS hardening
   ansible.builtin.include_role:
     name: devsec.hardening.os_hardening
+  vars:
+    os_auditd_max_log_file_action: "{{ nextcloud_os_auditd_max_log_file_action }}"
+  when: nextcloud_os_hardening
 
-- name: flush handlers for os hardening
+- name: Flush handlers for os hardening
   ansible.builtin.meta: flush_handlers

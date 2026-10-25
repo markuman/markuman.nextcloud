@@ -1,0 +1,75 @@
+---
+- name: Install coturn
+  ansible.builtin.apt:
+    name: coturn
+    state: present
+
+- name: Firewall rules for coturn
+  community.general.ufw:
+    rule: allow
+    port: "3478"
+    proto: "{{ item }}"
+    comment: incoming coturn
+  loop:
+    - tcp
+    - udp
+  when: nextcloud_firewall
+
+- name: Generate coturn secret once
+  ansible.builtin.shell:
+    cmd: umask 077 && openssl rand -hex 32 > {{ nextcloud_coturn_secret_file }}
+    creates: "{{ nextcloud_coturn_secret_file }}"
+
+- name: Read coturn secret
+  ansible.builtin.slurp:
+    src: "{{ nextcloud_coturn_secret_file }}"
+  register: nextcloud_coturn_secret_b64
+  no_log: true
+
+- name: Set coturn secret
+  ansible.builtin.set_fact:
+    nextcloud_coturn_secret: "{{ nextcloud_coturn_secret_b64.content | b64decode | trim }}"
+  no_log: true
+
+- name: Coturn config
+  ansible.builtin.template:
+    src: turnserver.conf.j2
+    dest: /etc/turnserver.conf
+    owner: root
+    group: turnserver
+    mode: "0640"
+  notify: Restart coturn
+
+- name: Ensure coturn is started and enabled
+  ansible.builtin.systemd_service:
+    name: coturn
+    state: started
+    enabled: true
+
+- name: Configure turn server in talk
+  become: true
+  become_user: www-data
+  block:
+    - name: Get turn servers
+      ansible.builtin.command:
+        cmd: "{{ nextcloud_occ }} talk:turn:list --output=json"
+      register: nextcloud_turn_list
+      changed_when: false
+
+    - name: Add turn server
+      ansible.builtin.command:
+        argv:
+          - php
+          - "{{ nextcloud_webroot }}/occ"
+          - talk:turn:add
+          - turn
+          - "{{ nextcloud_fqdn }}:3478"
+          - udp,tcp
+          - "--secret={{ nextcloud_coturn_secret }}"
+      when: >-
+        nextcloud_turn_list.stdout | from_json
+        | selectattr('server', 'equalto', nextcloud_fqdn ~ ':3478')
+        | selectattr('secret', 'equalto', nextcloud_coturn_secret)
+        | list | length == 0
+      changed_when: true
+      no_log: true

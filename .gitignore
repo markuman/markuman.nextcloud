@@ -136,3 +136,5 @@ dmypy.json
 test.yml
 test.py
 .envrc
+tests/output/
+markuman-nextcloud-*.tar.gz

@@ -1,54 +1,54 @@
 ---
-- hosts: localhost
+# CI variant: nextcloud runs as a service container with plain http,
+# so the passwords app (requires https) and talk are not tested here.
+- name: Run integration tests in CI
+  hosts: localhost
   connection: local
   gather_facts: false
 
   vars:
-    SSL_MODE: http
+    nc_host: "{{ lookup('ansible.builtin.env', 'nc_host') }}"
+    nc_user: "{{ lookup('ansible.builtin.env', 'nc_user') }}"
+    nc_token: "{{ lookup('ansible.builtin.env', 'nc_token') }}"
+    nc_ssl_mode: http
 
   module_defaults:
-    markuman.nextcloud.file:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.file_info:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.password:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.password_info:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.passwords:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.generate_password:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.user_info:
-      ssl_mode: "{{ SSL_MODE }}"
-    markuman.nextcloud.info:
-      ssl_mode: "{{ SSL_MODE }}"
+    group/markuman.nextcloud.nextcloud:
+      ssl_mode: "{{ nc_ssl_mode }}"
 
   tasks:
-    - name: wait for nextcloud (pull image and install)
-      get_url:
-        url: http://nextcloud21
-        dest: /tmp/test
+    - name: Wait for nextcloud (pull image and install)
+      ansible.builtin.uri:
+        url: "http://{{ nc_host }}/status.php"
       register: status
-      until: status.failed == false
+      until: status.json is defined and status.json.installed | default(false)
+      retries: 60
       delay: 5
-      retries: 50
 
-    - name: integration tests
-      block:
-        - name: file integration test
-          include_role:
-            name: info
+    - name: Create a second user for user module tests
+      ansible.builtin.uri:
+        url: "http://{{ nc_host }}/ocs/v2.php/cloud/users"
+        method: POST
+        user: "{{ nc_user }}"
+        password: "{{ nc_token }}"
+        force_basic_auth: true
+        headers:
+          OCS-APIRequest: "true"
+          Accept: application/json
+        body_format: json
+        body:
+          userid: testuser
+          password: "testuser_password_123!"
+        status_code: [200, 400]
 
-        - name: file integration test
-          include_role:
-            name: user
+    - name: Info integration test
+      ansible.builtin.include_role:
+        name: info
 
-        - name: file integration test
-          include_role:
-            name: file
+    - name: User integration test
+      ansible.builtin.include_role:
+        name: user
 
-        - name: passwords integration test
-          when: SSL_MODE != 'http'
-          include_role:
-            name: passwords
+    - name: File integration test
+      ansible.builtin.include_role:
+        name: file

@@ -1,0 +1,27 @@
+---
+- name: Start debian 13 systemd container
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Build test image
+      containers.podman.podman_image:
+        name: localhost/markuman-nextcloud-role-test
+        tag: debian13
+        path: "{{ playbook_dir }}"
+        build:
+          file: "{{ playbook_dir }}/Containerfile"
+        force: true
+
+    - name: Start test container
+      containers.podman.podman_container:
+        name: "{{ role_test_container }}"
+        image: localhost/markuman-nextcloud-role-test:debian13
+        state: started
+        recreate: true
+        systemd: always
+        hostname: nextcloud
+        publish:
+          - "127.0.0.1:{{ role_test_https_port }}:443"
+          - "127.0.0.1:{{ role_test_http_port }}:80"

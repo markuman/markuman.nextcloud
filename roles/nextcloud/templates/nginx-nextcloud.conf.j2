@@ -1,0 +1,162 @@
+# {{ ansible_managed }}
+# based on https://docs.nextcloud.com/server/latest/admin_manual/installation/nginx.html
+
+upstream php-handler {
+    server unix:{{ nextcloud_php_fpm_socket }};
+}
+
+# Set the `immutable` cache control options only for assets with a cache busting `v` argument
+map $arg_v $asset_immutable {
+    "" "";
+    default ", immutable";
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ nextcloud_fqdn }};
+    server_tokens off;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root {{ nextcloud_acme_webroot }};
+        default_type text/plain;
+    }
+
+{% if nextcloud_https_enabled | bool %}
+    location / {
+        return 301 https://$host$request_uri;
+    }
+{% else %}
+    # no certificate yet, only serve the acme challenge
+    location / {
+        return 503;
+    }
+{% endif %}
+}
+{% if nextcloud_https_enabled | bool %}
+
+server {
+    listen 443      ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name {{ nextcloud_fqdn }};
+    server_tokens off;
+
+    root {{ nextcloud_webroot }};
+
+    # mozilla intermediate configuration
+    ssl_certificate     {{ nextcloud_tls_certificate }};
+    ssl_certificate_key {{ nextcloud_tls_certificate_key }};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:NextcloudSSL:10m;
+    ssl_session_tickets off;
+
+    modsecurity on;
+    modsecurity_rules_file /etc/nginx/modsecurity_nextcloud.conf;
+
+    # set max upload size and increase upload timeout:
+    client_max_body_size {{ nextcloud_max_upload_size }};
+    client_body_timeout 300s;
+    client_body_buffer_size 512k;
+    fastcgi_buffers 64 4K;
+
+    # Enable gzip but do not remove ETag headers
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 4;
+    gzip_min_length 256;
+    gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+    gzip_types application/atom+xml text/javascript application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/wasm application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
+
+    include snippets/nextcloud-headers.conf;
+
+    # Remove X-Powered-By, which is an information leak
+    fastcgi_hide_header X-Powered-By;
+
+    include mime.types;
+    types {
+        text/javascript mjs;
+        application/wasm wasm;
+    }
+
+    index index.php index.html /index.php$request_uri;
+
+    # Rule borrowed from `.htaccess` to handle Microsoft DAV clients
+    location = / {
+        if ( $http_user_agent ~ ^DavClnt ) {
+            return 302 /remote.php/webdav/$is_args$args;
+        }
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+
+    location ^~ /.well-known {
+        location = /.well-known/carddav { return 301 /remote.php/dav/; }
+        location = /.well-known/caldav  { return 301 /remote.php/dav/; }
+
+        location /.well-known/acme-challenge    { root {{ nextcloud_acme_webroot }}; try_files $uri =404; }
+        location /.well-known/pki-validation    { try_files $uri $uri/ =404; }
+
+        return 301 /index.php$request_uri;
+    }
+
+    # Rules borrowed from `.htaccess` to hide certain paths from clients
+    location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)(?:$|/)  { return 404; }
+    location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console)                { return 404; }
+    location ~ ^/(?:composer\.(?:json|lock)|package(?:-lock)?\.json|core/shipped\.json)$ { return 404; }
+
+    location ~ \.php(?:$|/) {
+        rewrite ^/(?!index|remote|public|cron|status|ocs\/v[12]|ocs-provider\/.+|core\/ajax\/update|updater\/.+|.+\/richdocumentscode(_arm64)?\/proxy) /index.php$request_uri;
+
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        set $path_info $fastcgi_path_info;
+
+        try_files $fastcgi_script_name =404;
+
+        include fastcgi_params;
+        fastcgi_pass php-handler;
+
+        fastcgi_param SCRIPT_FILENAME            $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO                  $path_info;
+        fastcgi_param HTTPS                      on;
+        fastcgi_param modHeadersAvailable        true;
+        fastcgi_param front_controller_active    true;
+
+        fastcgi_intercept_errors on;
+        fastcgi_request_buffering on;
+        fastcgi_read_timeout 3600s;
+        fastcgi_max_temp_file_size 0;
+    }
+
+    # static files do not need the WAF
+    location ~ \.(?:css|js|mjs|svg|gif|ico|jpg|png|webp|wasm|tflite|map|ogg|flac|mp4|webm)$ {
+        modsecurity off;
+        try_files $uri /index.php$request_uri;
+        add_header Cache-Control "public, max-age=15778463$asset_immutable";
+        include snippets/nextcloud-headers.conf;
+        access_log off;
+    }
+
+    location ~ \.(otf|woff2?)$ {
+        modsecurity off;
+        try_files $uri /index.php$request_uri;
+        expires 7d;
+        access_log off;
+    }
+
+    location /remote {
+        return 301 /remote.php$request_uri;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php$request_uri;
+    }
+}
+{% endif %}

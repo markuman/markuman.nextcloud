@@ -1,17 +1,67 @@
-- include_tasks: 01-packages.yml
-- include_tasks: 02-user.yml
-- include_tasks: 03-mariadb.yml
-- include_tasks: 04-php.yml
-- include_tasks: 05-caddy.yml
-- include_tasks: 06-nextcloud.yml
-- include_tasks: 07-coturn.yml
-- include_tasks: 08-media.yml
+---
+- name: Verify supported platform
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Debian'
+      - ansible_facts['distribution_major_version'] == '13'
+    fail_msg: This role supports Debian 13 (trixie) only.
+    quiet: true
+  tags: always
 
-- name: check if a reboot is required
+- name: Verify let's encrypt settings
+  ansible.builtin.assert:
+    that:
+      - nextcloud_letsencrypt_mail is defined
+      - nextcloud_letsencrypt_mail | length > 0
+    fail_msg: nextcloud_letsencrypt_mail is required with nextcloud_tls_mode=letsencrypt
+    quiet: true
+  when: nextcloud_tls_mode == 'letsencrypt'
+  tags: always
+
+- name: Packages, firewall and os hardening
+  ansible.builtin.import_tasks: 01-packages.yml
+  tags: packages
+
+- name: System user and ssh hardening
+  ansible.builtin.import_tasks: 02-user.yml
+  tags: user
+
+- name: MariaDB
+  ansible.builtin.import_tasks: 03-mariadb.yml
+  tags: mariadb
+
+- name: PHP
+  ansible.builtin.import_tasks: 04-php.yml
+  tags: php
+
+- name: Nginx with modsecurity
+  ansible.builtin.import_tasks: 05-nginx.yml
+  tags: nginx
+
+- name: Nextcloud
+  ansible.builtin.import_tasks: 06-nextcloud.yml
+  tags: nextcloud
+
+- name: Talk and coturn
+  ansible.builtin.import_tasks: 07-talk.yml
+  when: nextcloud_install_talk
+  tags: talk
+
+- name: Media apps
+  ansible.builtin.import_tasks: 08-media.yml
+  when: nextcloud_install_media
+  tags: media
+
+- name: Check if a reboot is required
   ansible.builtin.stat:
     path: /var/run/reboot-required
-  register: reboot_required_file
+  register: nextcloud_reboot_required
+  when: nextcloud_reboot
+  tags: reboot
 
-- name: Unconditionally reboot the machine with all defaults
+- name: Reboot the machine
   ansible.builtin.reboot:
-  when: reboot_required_file.stat.exists
+  when:
+    - nextcloud_reboot
+    - nextcloud_reboot_required.stat.exists
+  tags: reboot
