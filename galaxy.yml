@@ -24,6 +24,7 @@ dependencies:
   devsec.hardening: '>=10.5.1,<12.0.0'
 build_ignore:
   - .github
+  - wiki
   - Makefile
   - tests/output
   - "*.tar.gz"
