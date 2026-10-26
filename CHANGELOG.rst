@@ -13,7 +13,7 @@ Release Summary
 Major release after two years without updates. Tested against ansible-core 2.21 and Nextcloud 35.
 The install role was rewritten for Debian 13 with nginx and ModSecurity.
 The modules got a lot of bugfixes and the integration tests run with podman now.
-The new ``s3_bucket`` module manages buckets and access keys of the S3 API app.
+The new ``s3_bucket`` and ``s3_bucket_info`` modules and the ``s3_buckets`` lookup manage buckets and access keys of the S3 API app.
 
 Major Changes
 -------------
@@ -95,10 +95,19 @@ Bugfixes
 - talk callback - did not call the ``CallbackBase`` constructor and ``v2_playbook_on_(not_)import_for_host`` crashed with a ``TypeError``.
 - user - enabling or disabling a user failed because a method instead of the headers was handed to requests.
 
+New Plugins
+-----------
+
+Lookup
+~~~~~~
+
+- s3_buckets - list the buckets of the nextcloud s3_api app
+
 New Modules
 -----------
 
 - s3_bucket - manage buckets and access keys of the nextcloud s3_api app
+- s3_bucket_info - info about buckets and access keys of the nextcloud s3_api app
 
 v29.0.4
 =======

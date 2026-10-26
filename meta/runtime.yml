@@ -8,6 +8,7 @@ action_groups:
     - password
     - password_info
     - s3_bucket
+    - s3_bucket_info
     - talk
     - user
     - user_info

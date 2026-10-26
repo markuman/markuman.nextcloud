@@ -37,6 +37,28 @@ TIMEOUT = (15, 300)
 PASSWORDS_API = 'index.php/apps/passwords/api/1.0'
 PASSWORDS_ROOT_FOLDER = '00000000-0000-0000-0000-000000000000'
 
+S3_API = 'index.php/apps/s3_api/api/v1/buckets'
+S3_ENDPOINT = 'index.php/apps/s3_api/s3'
+
+# camelCase of the s3_api app -> snake_case of the collection
+S3_BUCKET_FIELDS = {
+    'id': 'id',
+    'userId': 'user_id',
+    'bucketName': 'bucket_name',
+    'folderPath': 'folder_path',
+    'createdAt': 'created_at',
+}
+
+S3_KEY_FIELDS = {
+    'id': 'id',
+    'bucketId': 'bucket_id',
+    'accessKey': 'access_key',
+    'permission': 'permission',
+    'label': 'label',
+    'createdAt': 'created_at',
+    'secretKey': 'secret_key',
+}
+
 DAV_NS = {
     'd': 'DAV:',
     'oc': 'http://owncloud.org/ns',
@@ -92,6 +114,11 @@ def decrypt_item(item_key, item, key='label'):
         return ""
     vals = binascii.unhexlify(item[key])
     return decrypt(vals, binascii.unhexlify(item_key)).decode()
+
+
+def snake(obj, fields):
+    """ rename the keys of obj with the fields mapping, unknown keys are dropped """
+    return dict((new, obj[old]) for old, new in fields.items() if old in obj)
 
 
 def _text(element):
@@ -301,6 +328,39 @@ class NextcloudHandler:
         }
         r = self.request('POST', 'ocs/v2.php/apps/spreed/api/v1/chat/{0}'.format(quote(channel)), expected=(201,), json=body)
         return r, True
+
+    # ------------------------------------------------------------------ s3_api
+
+    def s3_endpoint_url(self):
+        return self.url(S3_ENDPOINT)
+
+    def s3_list_buckets(self):
+        # a disabled app answers with 404 or redirects to the default app
+        r = self.request('GET', S3_API, expected=(200, 302, 303, 404), allow_redirects=False)
+        try:
+            buckets = r.json()
+        except ValueError:
+            buckets = None
+        if r.status_code != 200 or not isinstance(buckets, list):
+            self.fail('The s3_api app is not installed or not enabled for user {0} '
+                      '(GET {1} returned {2})'.format(self.USER, S3_API, r.status_code))
+        return buckets
+
+    def s3_create_bucket(self, name, folder):
+        return self.request('POST', S3_API, expected=(201,), json={'bucketName': name, 'folderPath': folder}).json()
+
+    def s3_delete_bucket(self, bucket_id):
+        self.request('DELETE', '{0}/{1}'.format(S3_API, bucket_id))
+
+    def s3_list_keys(self, bucket_id):
+        return self.request('GET', '{0}/{1}/keys'.format(S3_API, bucket_id)).json()
+
+    def s3_create_key(self, bucket_id, label, permission):
+        return self.request('POST', '{0}/{1}/keys'.format(S3_API, bucket_id), expected=(201,),
+                            json={'label': label, 'permission': permission}).json()
+
+    def s3_delete_key(self, bucket_id, key_id):
+        self.request('DELETE', '{0}/{1}/keys/{2}'.format(S3_API, bucket_id, key_id))
 
     # ------------------------------------------------------------------ passwords
 

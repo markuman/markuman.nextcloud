@@ -162,69 +162,13 @@ endpoint_url:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import NextcloudHandler
 from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import parameter_specs
-
-API = 'index.php/apps/s3_api/api/v1/buckets'
-
-BUCKET_FIELDS = {
-    'id': 'id',
-    'userId': 'user_id',
-    'bucketName': 'bucket_name',
-    'folderPath': 'folder_path',
-    'createdAt': 'created_at',
-}
-
-KEY_FIELDS = {
-    'id': 'id',
-    'bucketId': 'bucket_id',
-    'accessKey': 'access_key',
-    'permission': 'permission',
-    'label': 'label',
-    'createdAt': 'created_at',
-    'secretKey': 'secret_key',
-}
-
-
-def snake(obj, fields):
-    return dict((new, obj[old]) for old, new in fields.items() if old in obj)
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import snake
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import S3_BUCKET_FIELDS as BUCKET_FIELDS
+from ansible_collections.markuman.nextcloud.plugins.module_utils.nextcloud import S3_KEY_FIELDS as KEY_FIELDS
 
 
 def normalize(path):
     return '/' + path.strip('/')
-
-
-class S3Api:
-
-    def __init__(self, module, nc):
-        self.module = module
-        self.nc = nc
-
-    def list_buckets(self):
-        # a disabled app answers with 404 or redirects to the default app
-        r = self.nc.request('GET', API, expected=(200, 302, 303, 404), allow_redirects=False)
-        try:
-            buckets = r.json()
-        except ValueError:
-            buckets = None
-        if r.status_code != 200 or not isinstance(buckets, list):
-            self.module.fail_json(msg='The s3_api app is not installed or not enabled for user {0} '
-                                      '(GET {1} returned {2})'.format(self.nc.USER, API, r.status_code))
-        return buckets
-
-    def create_bucket(self, name, folder):
-        return self.nc.request('POST', API, expected=(201,), json={'bucketName': name, 'folderPath': folder}).json()
-
-    def delete_bucket(self, bucket_id):
-        self.nc.request('DELETE', '{0}/{1}'.format(API, bucket_id))
-
-    def list_keys(self, bucket_id):
-        return self.nc.request('GET', '{0}/{1}/keys'.format(API, bucket_id)).json()
-
-    def create_key(self, bucket_id, label, permission):
-        return self.nc.request('POST', '{0}/{1}/keys'.format(API, bucket_id), expected=(201,),
-                               json={'label': label, 'permission': permission}).json()
-
-    def delete_key(self, bucket_id, key_id):
-        self.nc.request('DELETE', '{0}/{1}/keys/{2}'.format(API, bucket_id, key_id))
 
 
 def ensure_folder(module, nc, folder):
@@ -288,7 +232,6 @@ def main():
     )
 
     nc = NextcloudHandler(module.params, module.fail_json)
-    api = S3Api(module, nc)
 
     name = module.params.get('name')
     state = module.params.get('state')
@@ -300,11 +243,11 @@ def main():
         access_keys=[],
         created_keys=[],
         deleted_keys=[],
-        endpoint_url=nc.url('index.php/apps/s3_api/s3'),
+        endpoint_url=nc.s3_endpoint_url(),
     )
 
     bucket = None
-    for item in api.list_buckets():
+    for item in nc.s3_list_buckets():
         if item.get('bucketName') == name:
             bucket = item
             break
@@ -312,9 +255,9 @@ def main():
     if state == 'absent':
         if bucket:
             result['changed'] = True
-            result['deleted_keys'] = [snake(k, KEY_FIELDS) for k in api.list_keys(bucket['id'])]
+            result['deleted_keys'] = [snake(k, KEY_FIELDS) for k in nc.s3_list_keys(bucket['id'])]
             if not module.check_mode:
-                api.delete_bucket(bucket['id'])
+                nc.s3_delete_bucket(bucket['id'])
         module.exit_json(**result)
 
     if bucket is None:
@@ -324,12 +267,12 @@ def main():
             ensure_folder(module, nc, folder)
         result['changed'] = True
         if not module.check_mode:
-            bucket = api.create_bucket(name, normalize(folder))
+            bucket = nc.s3_create_bucket(name, normalize(folder))
     elif folder and normalize(folder) != normalize(bucket.get('folderPath') or '/'):
         module.fail_json(msg='Bucket {0} is bound to folder {1}, not {2}. Buckets cannot be moved, '
                              'delete the bucket first'.format(name, bucket.get('folderPath'), normalize(folder)))
 
-    existing = api.list_keys(bucket['id']) if bucket else []
+    existing = nc.s3_list_keys(bucket['id']) if bucket else []
     to_create, to_delete = plan_keys(module, existing, module.params.get('access_keys'), module.params.get('purge_keys'))
 
     if to_create or to_delete:
@@ -343,8 +286,8 @@ def main():
         module.exit_json(**result)
 
     for key in to_delete:
-        api.delete_key(bucket['id'], key['id'])
-    created = [api.create_key(bucket['id'], k['label'], k['permission']) for k in to_create]
+        nc.s3_delete_key(bucket['id'], key['id'])
+    created = [nc.s3_create_key(bucket['id'], k['label'], k['permission']) for k in to_create]
 
     deleted_ids = set(k['id'] for k in to_delete)
     keys = [k for k in existing if k['id'] not in deleted_ids] + created

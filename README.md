@@ -16,7 +16,10 @@ Ansible Nextcloud Collection - that brings up your nextcloud usage to the next l
 * 🔑 passwords
     * `passwords` and `generate_password` lookup plugins for the [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` and `password_info` modules - create, update, delete and read [passwords](https://apps.nextcloud.com/apps/passwords)
-* 🪣 `s3_bucket` module - create and delete buckets and access keys of the [S3 API app](https://apps.nextcloud.com/apps/s3_api)
+* 🪣 [S3 API app](https://apps.nextcloud.com/apps/s3_api)
+    * `s3_bucket` module - create and delete buckets and access keys
+    * `s3_bucket_info` module - list buckets and their access keys
+    * `s3_buckets` lookup plugin - names of all buckets
 * `markuman.nextcloud.nextcloud` installation role - securely setup Nextcloud on Debian 13 with nginx and ModSecurity.
 
 All modules are part of the `markuman.nextcloud.nextcloud` action group:

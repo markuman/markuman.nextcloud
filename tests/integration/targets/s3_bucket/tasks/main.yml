@@ -31,6 +31,29 @@
       - out is failed
       - "'s3_api app is not installed or not enabled' in out.msg"
 
+- name: Info without s3_api app
+  markuman.nextcloud.s3_bucket_info:
+  register: out
+  ignore_errors: true
+
+- name: Info with missing app fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'s3_api app is not installed or not enabled' in out.msg"
+
+- name: Lookup without s3_api app
+  ansible.builtin.set_fact:
+    nope: "{{ query('markuman.nextcloud.s3_buckets', host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}"
+  register: out
+  ignore_errors: true
+
+- name: Lookup with missing app fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'s3_api app is not installed or not enabled' in out.msg"
+
 - name: Enable s3_api app
   delegate_to: nextcloud-integrationtest
   remote_user: www-data
@@ -253,6 +276,68 @@
       - out.deleted_keys | map(attribute='label') | list == ['rw']
       - out.access_keys | map(attribute='label') | list == ['new']
 
+- name: Create a second bucket
+  markuman.nextcloud.s3_bucket:
+    name: ansible-second
+    folder: /S3/ansible-second
+    create_folder: true
+
+- name: Info about all buckets
+  markuman.nextcloud.s3_bucket_info:
+  register: out
+
+- name: Info lists both buckets with their keys
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+      - out.buckets | map(attribute='bucket_name') | sort == ['ansible-second', 'ansible-test']
+      - out.buckets | selectattr('bucket_name', '==', 'ansible-second') | map(attribute='access_keys') | first == []
+      - out.endpoint_url.endswith('/index.php/apps/s3_api/s3')
+
+- name: Info about one bucket
+  markuman.nextcloud.s3_bucket_info:
+    name: ansible-test
+  register: out
+
+- name: Info returns the bucket and its keys without secret
+  ansible.builtin.assert:
+    that:
+      - out.buckets | length == 1
+      - out.buckets[0].bucket_name == 'ansible-test'
+      - out.buckets[0].folder_path == '/S3/ansible-test'
+      - out.buckets[0].access_keys | map(attribute='label') | list == ['new']
+      - out.buckets[0].access_keys[0].access_key | length == 20
+      - "'secret_key' not in out.buckets[0].access_keys[0]"
+
+- name: Info about a missing bucket
+  markuman.nextcloud.s3_bucket_info:
+    name: does-not-exist
+  register: out
+
+- name: Info about a missing bucket is empty
+  ansible.builtin.assert:
+    that:
+      - out.buckets == []
+
+- name: Lookup bucket names
+  ansible.builtin.set_fact:
+    names: "{{ query('markuman.nextcloud.s3_buckets', host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}"
+    details: >-
+      {{ query('markuman.nextcloud.s3_buckets', details=true,
+               host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}
+
+- name: Lookup returns all buckets
+  ansible.builtin.assert:
+    that:
+      - names | sort == ['ansible-second', 'ansible-test']
+      - details | map(attribute='bucket_name') | sort == ['ansible-second', 'ansible-test']
+      - details | map(attribute='folder_path') | sort == ['/S3/ansible-second', '/S3/ansible-test']
+
+- name: Delete the second bucket
+  markuman.nextcloud.s3_bucket:
+    name: ansible-second
+    state: absent
+
 - name: Second bucket in an overlapping folder fails
   markuman.nextcloud.s3_bucket:
     name: ansible-overlap
@@ -311,6 +396,15 @@
   ansible.builtin.assert:
     that:
       - out.file_info.content_type == 'inode/directory'
+
+- name: Lookup without buckets
+  ansible.builtin.set_fact:
+    names: "{{ query('markuman.nextcloud.s3_buckets', host=nc_host, user=nc_user, api_token=nc_token, ssl_mode=nc_ssl_mode) }}"
+
+- name: Lookup returns an empty list
+  ansible.builtin.assert:
+    that:
+      - names == []
 
 - name: Cleanup folder
   markuman.nextcloud.file:

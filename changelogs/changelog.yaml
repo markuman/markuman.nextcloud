@@ -287,8 +287,8 @@ releases:
         The modules got a lot of bugfixes and the integration tests run with podman
         now.
 
-        The new ``s3_bucket`` module manages buckets and access keys of the S3 API
-        app.
+        The new ``s3_bucket`` and ``s3_bucket_info`` modules and the ``s3_buckets``
+        lookup manage buckets and access keys of the S3 API app.
 
         '
       removed_features:
@@ -299,6 +299,14 @@ releases:
     - description: manage buckets and access keys of the nextcloud s3_api app
       name: s3_bucket
       namespace: ''
+    - description: info about buckets and access keys of the nextcloud s3_api app
+      name: s3_bucket_info
+      namespace: ''
+    plugins:
+      lookup:
+      - description: list the buckets of the nextcloud s3_api app
+        name: s3_buckets
+        namespace: null
     release_date: '2026-10-26'
   9.0.1-dev:
     changes:
