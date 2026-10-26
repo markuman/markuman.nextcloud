@@ -74,7 +74,7 @@
 
   tasks:
     # app store downloads tend to hang sometimes, so give it a few chances
-    - name: Install passwords and talk app
+    - name: Install passwords, talk and s3_api app
       ansible.builtin.command: "timeout 180 php occ app:install {{ item }}"
       args:
         chdir: /var/www/html
@@ -87,6 +87,7 @@
       loop:
         - passwords
         - spreed
+        - s3_api
 
     - name: Create a second user for user module tests
       ansible.builtin.command: php occ user:add --password-from-env --display-name "Test User" testuser
@@ -139,6 +140,10 @@
         - name: Talk integration test
           ansible.builtin.include_role:
             name: talk
+
+        - name: S3 bucket integration test
+          ansible.builtin.include_role:
+            name: s3_bucket
 
       always:
         - name: Stop nextcloud container

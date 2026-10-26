@@ -16,6 +16,7 @@ Ansible Nextcloud Collection - that brings up your nextcloud usage to the next l
 * 🔑 passwords
     * `passwords` and `generate_password` lookup plugins for the [passwords app](https://apps.nextcloud.com/apps/passwords)
     * `password` and `password_info` modules - create, update, delete and read [passwords](https://apps.nextcloud.com/apps/passwords)
+* 🪣 `s3_bucket` module - create and delete buckets and access keys of the [S3 API app](https://apps.nextcloud.com/apps/s3_api)
 * `markuman.nextcloud.nextcloud` installation role - securely setup Nextcloud on Debian 13 with nginx and ModSecurity.
 
 All modules are part of the `markuman.nextcloud.nextcloud` action group:
@@ -62,6 +63,10 @@ Python requirements: `requests`, and `pysodium` for passwords with client side e
 | `make lint` | `ansible-lint` |
 | `make test` | module integration tests against the official nextcloud image (podman) |
 | `make test-role` | install role in a Debian 13 systemd container + module integration tests against it (podman) |
+
+The collections needed for linting and testing are listed in `tests/requirements.yml`:
+`ansible-galaxy collection install -r tests/requirements.yml`.
+GitHub Actions run all of the above on every push and pull request.
 
 ## Support
 

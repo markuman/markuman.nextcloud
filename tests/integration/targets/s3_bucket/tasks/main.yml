@@ -1,0 +1,319 @@
+---
+- name: Disable s3_api app
+  delegate_to: nextcloud-integrationtest
+  remote_user: www-data
+  ansible.builtin.command: php occ app:disable s3_api
+  args:
+    chdir: /var/www/html
+  changed_when: true
+
+# nextcloud caches the enabled apps in apcu, a graceful restart drops that cache
+- name: Reload apache2
+  delegate_to: nextcloud-integrationtest
+  remote_user: root
+  ansible.builtin.command: apache2ctl graceful
+  changed_when: true
+
+- name: Bucket without s3_api app
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: /S3/ansible-test
+  register: out
+  ignore_errors: true
+  # the old apache workers need a moment to go away
+  until: "'not installed' in out.msg | default('')"
+  retries: 5
+  delay: 2
+
+- name: Missing app fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'s3_api app is not installed or not enabled' in out.msg"
+
+- name: Enable s3_api app
+  delegate_to: nextcloud-integrationtest
+  remote_user: www-data
+  ansible.builtin.command: php occ app:enable s3_api
+  args:
+    chdir: /var/www/html
+  changed_when: true
+
+- name: Reload apache2 again
+  delegate_to: nextcloud-integrationtest
+  remote_user: root
+  ansible.builtin.command: apache2ctl graceful
+  changed_when: true
+
+- name: Bucket without folder fails
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+  register: out
+  ignore_errors: true
+  until: "'no folder is given' in out.msg | default('')"
+  retries: 5
+  delay: 2
+
+- name: Missing folder parameter fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'no folder is given' in out.msg"
+
+- name: Bucket on missing folder without create_folder fails
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: /S3/ansible-test
+  register: out
+  ignore_errors: true
+
+- name: Missing folder fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'Folder does not exist' in out.msg"
+
+- name: Check_mode create bucket with key
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: /S3/ansible-test
+    create_folder: true
+    access_keys:
+      - label: rw
+        permission: readwrite
+  check_mode: true
+  register: out
+
+- name: Check_mode create is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.bucket == {}
+      - "out.created_keys == [{'label': 'rw', 'permission': 'readwrite'}]"
+
+- name: Check_mode did not create the folder
+  markuman.nextcloud.file_info:
+    source: S3
+  register: out
+
+- name: Folder does not exist
+  ansible.builtin.assert:
+    that:
+      - out.file_info == {}
+
+- name: Create bucket with key
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: /S3/ansible-test
+    create_folder: true
+    access_keys:
+      - label: rw
+        permission: readwrite
+  register: out
+
+- name: Create is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.bucket.bucket_name == 'ansible-test'
+      - out.bucket.folder_path == '/S3/ansible-test'
+      - out.bucket.user_id == 'ansible'
+      - out.created_keys | length == 1
+      - out.created_keys[0].label == 'rw'
+      - out.created_keys[0].permission == 'readwrite'
+      - out.created_keys[0].access_key | length == 20
+      - out.created_keys[0].secret_key | length == 40
+      - out.access_keys == out.created_keys
+      - out.endpoint_url.endswith('/index.php/apps/s3_api/s3')
+
+- name: Remember the first key
+  ansible.builtin.set_fact:
+    first_key: "{{ out.created_keys[0] }}"
+
+- name: Create bucket with key again
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: S3/ansible-test/
+    create_folder: true
+    access_keys:
+      - label: rw
+        permission: readwrite
+  register: out
+
+- name: Create again is not changed
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+      - out.created_keys == []
+      - out.access_keys | length == 1
+      - out.access_keys[0].access_key == first_key.access_key
+      - "'secret_key' not in out.access_keys[0]"
+
+- name: Existing bucket on another folder fails
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    folder: /S3/other
+  register: out
+  ignore_errors: true
+
+- name: Moving a bucket fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'Buckets cannot be moved' in out.msg"
+
+- name: Add a readonly key, without folder
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    access_keys:
+      - label: ro
+  register: out
+
+- name: Readonly key is added
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.created_keys | length == 1
+      - out.created_keys[0].permission == 'readonly'
+      - out.access_keys | map(attribute='label') | sort == ['ro', 'rw']
+
+- name: Check_mode change permission of rw key
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    access_keys:
+      - label: rw
+        permission: readonly
+  check_mode: true
+  register: out
+
+- name: Check_mode permission change is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.deleted_keys | map(attribute='access_key') | list == [first_key.access_key]
+      - "out.created_keys == [{'label': 'rw', 'permission': 'readonly'}]"
+
+- name: Change permission of rw key
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    access_keys:
+      - label: rw
+        permission: readonly
+  register: out
+
+- name: Key is recreated
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.deleted_keys | map(attribute='access_key') | list == [first_key.access_key]
+      - out.created_keys[0].access_key != first_key.access_key
+      - out.created_keys[0].permission == 'readonly'
+      - out.access_keys | length == 2
+
+- name: Delete ro key
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    access_keys:
+      - label: ro
+        state: absent
+  register: out
+
+- name: Ro key is deleted
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.deleted_keys | map(attribute='label') | list == ['ro']
+      - out.access_keys | map(attribute='label') | list == ['rw']
+
+- name: Delete ro key again
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    access_keys:
+      - label: ro
+        state: absent
+  register: out
+
+- name: Delete again is not changed
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+
+- name: Purge keys
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    purge_keys: true
+    access_keys:
+      - label: new
+  register: out
+
+- name: Rw key is purged
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.deleted_keys | map(attribute='label') | list == ['rw']
+      - out.access_keys | map(attribute='label') | list == ['new']
+
+- name: Second bucket in an overlapping folder fails
+  markuman.nextcloud.s3_bucket:
+    name: ansible-overlap
+    folder: /S3/ansible-test/sub
+    create_folder: true
+  register: out
+  ignore_errors: true
+
+- name: Overlap fails
+  ansible.builtin.assert:
+    that:
+      - out is failed
+      - "'409' in out.msg"
+
+- name: Check_mode delete bucket
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    state: absent
+  check_mode: true
+  register: out
+
+- name: Check_mode delete is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+      - out.deleted_keys | map(attribute='label') | list == ['new']
+
+- name: Delete bucket
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    state: absent
+  register: out
+
+- name: Delete is changed
+  ansible.builtin.assert:
+    that:
+      - out is changed
+
+- name: Delete bucket again
+  markuman.nextcloud.s3_bucket:
+    name: ansible-test
+    state: absent
+  register: out
+
+- name: Delete again is not changed
+  ansible.builtin.assert:
+    that:
+      - out is not changed
+
+- name: Folder is kept
+  markuman.nextcloud.file_info:
+    source: S3/ansible-test
+  register: out
+
+- name: Folder still exists
+  ansible.builtin.assert:
+    that:
+      - out.file_info.content_type == 'inode/directory'
+
+- name: Cleanup folder
+  markuman.nextcloud.file:
+    mode: delete
+    src: S3
+    delete_recursively: true

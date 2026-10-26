@@ -13,6 +13,7 @@ Release Summary
 Major release after two years without updates. Tested against ansible-core 2.21 and Nextcloud 35.
 The install role was rewritten for Debian 13 with nginx and ModSecurity.
 The modules got a lot of bugfixes and the integration tests run with podman now.
+The new ``s3_bucket`` module manages buckets and access keys of the S3 API app.
 
 Major Changes
 -------------
@@ -23,7 +24,7 @@ Major Changes
 Minor Changes
 -------------
 
-- CI - woodpecker configuration uses the current ``steps`` format, nextcloud 35 and runs ``ansible-test sanity``.
+- CI - GitHub Actions replace woodpecker. They run ``ansible-test sanity`` against ansible-core 2.17 to 2.22, ``ansible-lint``, the module integration tests and the role tests.
 - all modules - ``InsecureRequestWarning`` is no longer printed with ``ssl_mode=skip``.
 - all modules - ``host`` also accepts a full base url like ``https://example.com/nextcloud``.
 - all modules - ``ssl_mode`` has choices and all connection options have env fallbacks (``NEXTCLOUD_HOST``, ``NEXTCLOUD_USER``, ``NEXTCLOUD_TOKEN``, ``NEXTCLOUD_SSL_MODE``).
@@ -33,7 +34,7 @@ Minor Changes
 - file - ``overwrite=different`` works for ``mode=put`` as well.
 - file - downloads are streamed to disk and moved atomically instead of being held in memory.
 - file - uploads into a missing folder fail with a clear error message.
-- integration tests - run with podman against the official nextcloud image, including talk and the talk callback.
+- integration tests - run with podman against the official nextcloud image, including talk, the talk callback and the s3_api app.
 - lookup plugins - options are documented and can be set with ``NEXTCLOUD_*`` env variables.
 - nextcloud install role - ModSecurity runs with the OWASP CRS nextcloud exclusions plus own exclusions for large webdav uploads (``SecRequestBodyLimitAction ProcessPartial``) and ``PUT``/``PATCH``/``DELETE`` on the OCS API. Use ``nextcloud_modsecurity_engine=DetectionOnly`` for tuning.
 - nextcloud install role - argument specs for all variables.
@@ -93,6 +94,11 @@ Bugfixes
 - passwords lookup - only the first term was looked up.
 - talk callback - did not call the ``CallbackBase`` constructor and ``v2_playbook_on_(not_)import_for_host`` crashed with a ``TypeError``.
 - user - enabling or disabling a user failed because a method instead of the headers was handed to requests.
+
+New Modules
+-----------
+
+- s3_bucket - manage buckets and access keys of the nextcloud s3_api app
 
 v29.0.4
 =======

@@ -1,0 +1,113 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [latest]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # weekly, catches new nextcloud and ansible-core releases
+    - cron: '23 4 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sanity:
+    name: sanity (${{ matrix.ansible }})
+    runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.ansible == 'devel' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible:
+          - stable-2.17
+          - stable-2.18
+          - stable-2.19
+          - stable-2.20
+          - stable-2.21
+          - stable-2.22
+          - devel
+    steps:
+      - name: Run ansible-test sanity
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          testing-type: sanity
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Install ansible-lint
+        run: pip install ansible-lint
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r tests/requirements.yml
+
+      - name: Run ansible-lint
+        run: ansible-lint
+
+  integration:
+    name: integration (nextcloud ${{ matrix.nextcloud }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        nextcloud:
+          - 35-apache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Install ansible-core and requirements
+        run: pip install ansible-core -r requirements.txt
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r tests/requirements.yml
+
+      - name: Run module integration tests
+        run: make test NEXTCLOUD_VERSION=${{ matrix.nextcloud }}
+
+  role:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Install ansible-core and requirements
+        run: pip install ansible-core -r requirements.txt
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r tests/requirements.yml
+
+      # ubuntu 24.04 restricts unprivileged user namespaces with apparmor,
+      # rootless podman with a systemd container needs them
+      - name: Allow unprivileged user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Run role tests
+        run: make test-role

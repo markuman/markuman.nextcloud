@@ -235,7 +235,7 @@ class NextcloudHandler:
             detail = ''
             try:
                 body = r.json()
-                detail = body.get('message') or body.get('ocs', {}).get('meta', {}).get('message') or ''
+                detail = body.get('message') or body.get('error') or body.get('ocs', {}).get('meta', {}).get('message') or ''
             except Exception:
                 pass
             msg = 'Nextcloud returned with status code {0} for {1} {2}'.format(r.status_code, method, path)

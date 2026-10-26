@@ -231,8 +231,9 @@ releases:
         11.8, nginx, ModSecurity v3 and the OWASP CRS. Ubuntu and caddy are no longer
         supported.
       minor_changes:
-      - CI - woodpecker configuration uses the current ``steps`` format, nextcloud
-        35 and runs ``ansible-test sanity``.
+      - CI - GitHub Actions replace woodpecker. They run ``ansible-test sanity`` against
+        ansible-core 2.17 to 2.22, ``ansible-lint``, the module integration tests
+        and the role tests.
       - all modules - ``InsecureRequestWarning`` is no longer printed with ``ssl_mode=skip``.
       - all modules - ``host`` also accepts a full base url like ``https://example.com/nextcloud``.
       - all modules - ``ssl_mode`` has choices and all connection options have env
@@ -246,7 +247,7 @@ releases:
         held in memory.
       - file - uploads into a missing folder fail with a clear error message.
       - integration tests - run with podman against the official nextcloud image,
-        including talk and the talk callback.
+        including talk, the talk callback and the s3_api app.
       - lookup plugins - options are documented and can be set with ``NEXTCLOUD_*``
         env variables.
       - nextcloud install role - ModSecurity runs with the OWASP CRS nextcloud exclusions
@@ -286,12 +287,19 @@ releases:
         The modules got a lot of bugfixes and the integration tests run with podman
         now.
 
+        The new ``s3_bucket`` module manages buckets and access keys of the S3 API
+        app.
+
         '
       removed_features:
       - nextcloud install role - caddy support.
     fragments:
     - 35.0.0.yml
-    release_date: '2026-10-25'
+    modules:
+    - description: manage buckets and access keys of the nextcloud s3_api app
+      name: s3_bucket
+      namespace: ''
+    release_date: '2026-10-26'
   9.0.1-dev:
     changes:
       bugfixes:

@@ -137,4 +137,5 @@ test.yml
 test.py
 .envrc
 tests/output/
+.ansible/
 markuman-nextcloud-*.tar.gz
