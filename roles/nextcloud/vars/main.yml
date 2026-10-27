@@ -5,6 +5,15 @@ nextcloud_mariadb_socket: /run/mysqld/mysqld.sock
 nextcloud_coturn_secret_file: /etc/turnserver.secret
 nextcloud_acme_webroot: /var/www/letsencrypt
 
+# modsecurity
+nextcloud_modsecurity_dir: /etc/nginx/modsec
+# written by the nginx worker, not by root. /tmp (debian default) is world writable
+nextcloud_modsecurity_tmp_dir: /var/cache/modsecurity/tmp
+nextcloud_modsecurity_data_dir: /var/cache/modsecurity/data
+nextcloud_modsecurity_audit_log: /var/log/nginx/modsec_audit.log
+nextcloud_modsecurity_crs_setup: /etc/modsecurity/crs/crs-setup.conf
+nextcloud_modsecurity_crs_rules: /usr/share/modsecurity-crs/rules/*.conf
+
 nextcloud_tls_certificate: >-
   {{ '/etc/letsencrypt/live/' ~ nextcloud_fqdn ~ '/fullchain.pem'
      if nextcloud_tls_mode == 'letsencrypt' else '/etc/ssl/certs/ssl-cert-snakeoil.pem' }}

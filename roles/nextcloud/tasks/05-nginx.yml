@@ -18,17 +18,8 @@
     group: root
     mode: "0755"
 
-- name: Modsecurity rules for nextcloud
-  ansible.builtin.template:
-    src: "{{ item }}.j2"
-    dest: "/etc/nginx/{{ item }}"
-    owner: root
-    group: root
-    mode: "0644"
-  loop:
-    - modsecurity_nextcloud.conf
-    - modsecurity_nextcloud_exclusions.conf
-  notify: Reload nginx
+- name: Modsecurity
+  ansible.builtin.import_tasks: 05-modsecurity.yml
 
 - name: Nextcloud security headers snippet
   ansible.builtin.template:

@@ -55,7 +55,7 @@ server {
     ssl_session_tickets off;
 
     modsecurity on;
-    modsecurity_rules_file /etc/nginx/modsecurity_nextcloud.conf;
+    modsecurity_rules_file {{ nextcloud_modsecurity_dir }}/main.conf;
 
     # set max upload size and increase upload timeout:
     client_max_body_size {{ nextcloud_max_upload_size }};

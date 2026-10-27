@@ -35,9 +35,34 @@ nextcloud_extra_config: {}
 nextcloud_tls_mode: letsencrypt
 nextcloud_max_upload_size: 10G
 nextcloud_hsts_max_age: 31536000
-# On, DetectionOnly or Off
+# modsecurity v3 + owasp crs
+# On, DetectionOnly or Off. always quote, yaml 1.1 turns unquoted On/Off into booleans
 nextcloud_modsecurity_engine: "On"
 nextcloud_modsecurity_paranoia_level: 1
+# bytes inspected per request body. webdav uploads (PUT/MOVE/COPY) skip the body
+# inspection, larger bodies are inspected partially (ProcessPartial)
+nextcloud_modsecurity_request_body_limit: 104857600
+# RelevantOnly: requests matching nextcloud_modsecurity_audit_relevant_status
+# or a rule. waf hits are always logged
+nextcloud_modsecurity_audit_engine: RelevantOnly
+# "^5" only adds server errors. the modsecurity default "^(?:5|4(?!04))"
+# floods the log with application 4xx (csrf, old clients)
+nextcloud_modsecurity_audit_relevant_status: "^5"
+# A=header, F=response headers, H=trailer with the matched rules, Z=end.
+# no B/I/J (request headers, body, uploads): they leak app passwords,
+# session cookies and documents into the log. use "ABFHZ" for tuning
+nextcloud_modsecurity_audit_log_parts: AFHZ
+# own rules (tuning, exclusions). load order:
+#   modsecurity.conf -> crs-setup -> nextcloud -> before_crs -> crs -> after_crs
+#   before_crs (default): SecAction setvar, ctl exclusions
+#   after_crs:            SecRuleUpdateTarget*, SecRuleRemove*
+# rule ids 1000-1099 are used by the role
+# nextcloud_modsecurity_custom_rules:
+#   - name: 10-block-shell-substitution
+#     phase: before_crs
+#     content: |
+#       SecRule REQUEST_URI_RAW "@contains ${IFS}" "id:10000,phase:1,deny,status:403,log,msg:'shell IFS in uri'"
+nextcloud_modsecurity_custom_rules: []
 
 # php
 nextcloud_php_memory_limit: 1G

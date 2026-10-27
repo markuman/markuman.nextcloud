@@ -22,6 +22,17 @@
       changed_when: false
       failed_when: false
 
+    - name: Stat modsecurity audit log
+      ansible.builtin.stat:
+        path: /var/log/nginx/modsec_audit.log
+      register: audit_log
+
+    - name: Modsecurity audit log is not world readable
+      ansible.builtin.assert:
+        that:
+          - audit_log.stat.mode == '0640'
+          - audit_log.stat.pw_name == 'www-data'
+
     - name: Show failed setup checks
       ansible.builtin.debug:
         msg: >-
@@ -72,6 +83,16 @@
         validate_certs: false
         status_code: 403
 
+    # seen in the wild: drops a php webshell into apps/richdocumentscode/
+    - name: Modsecurity blocks the richdocumentscode command injection scan
+      ansible.builtin.uri:
+        url: "https://{{ nc_host }}/x$(echo${IFS}aWQ=|base64${IFS}-d|sh)x/{{ item }}/apps/richdocumentscode/proxy.php?status"
+        validate_certs: false
+        status_code: 403
+      loop:
+        - "%2e%2e"
+        - ".."
+
     - name: Data directory is not reachable
       ansible.builtin.uri:
         url: "https://{{ nc_host }}/data/nextcloud.log"
@@ -83,8 +104,8 @@
         suffix: .bin
       register: large_file
 
-    - name: Create a large file (WAF body limit is 13M)
-      ansible.builtin.command: "dd if=/dev/urandom of={{ large_file.path }} bs=1M count=64"
+    - name: Create a file larger than the WAF body limit (100M)
+      ansible.builtin.command: "dd if=/dev/urandom of={{ large_file.path }} bs=1M count=128"
       changed_when: true
 
     - name: Upload large file through modsecurity
@@ -107,7 +128,7 @@
     - name: Verify large file size
       ansible.builtin.assert:
         that:
-          - out.file_info.size == 67108864
+          - out.file_info.size == 134217728
 
     - name: Delete large file
       markuman.nextcloud.file:

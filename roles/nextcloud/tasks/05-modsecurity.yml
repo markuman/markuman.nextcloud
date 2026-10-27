@@ -1,0 +1,129 @@
+---
+# the seclang lexer reads regex selectors as DICT_ELEMENT_NO_PIPE
+# ([^ =\|\t"]+). a pipe in there breaks parsing of all rules and nginx
+# does not start anymore. split the alternation into several directives.
+- name: Reject pipes in modsecurity variable regex selectors
+  ansible.builtin.assert:
+    that:
+      - item.content | regex_findall('[A-Z_]+:/[^/\n]*\|[^/\n]*/') | length == 0
+    fail_msg: >-
+      rule {{ item.name }} contains a regex selector with a pipe
+      (e.g. REQUEST_COOKIES:/^(a|b)/). this breaks the seclang parser,
+      split it into several directives.
+    quiet: true
+  loop: "{{ nextcloud_modsecurity_custom_rules }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Modsecurity config directories
+  ansible.builtin.file:
+    path: "{{ nextcloud_modsecurity_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - ""
+    - rules-before-crs
+    - rules-after-crs
+
+# SecTmpDir and SecDataDir are written by the worker, not by the master
+- name: Modsecurity state directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0750"
+  loop:
+    - "{{ nextcloud_modsecurity_tmp_dir | dirname }}"
+    - "{{ nextcloud_modsecurity_tmp_dir }}"
+    - "{{ nextcloud_modsecurity_data_dir }}"
+
+# debian creates it as root:root 0644, readable by every local user.
+# same owner and mode as logrotate uses for /var/log/nginx/*.log
+- name: Modsecurity audit log is not world readable
+  ansible.builtin.file:
+    path: "{{ nextcloud_modsecurity_audit_log }}"
+    state: touch
+    owner: www-data
+    group: adm
+    mode: "0640"
+    modification_time: preserve
+    access_time: preserve
+
+# wildcard includes of an empty directory are an error
+- name: Placeholder for the custom rule directories
+  ansible.builtin.copy:
+    content: "# placeholder, managed by ansible. own rules via nextcloud_modsecurity_custom_rules\n"
+    dest: "{{ nextcloud_modsecurity_dir }}/{{ item }}/00-placeholder.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - rules-before-crs
+    - rules-after-crs
+
+- name: Modsecurity engine, crs and nextcloud tuning
+  ansible.builtin.template:
+    src: "modsecurity_{{ item }}.conf.j2"
+    dest: "{{ nextcloud_modsecurity_dir }}/{{ item }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - main
+    - engine
+    - nextcloud
+  notify: Reload nginx
+
+- name: Custom modsecurity rules
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ nextcloud_modsecurity_dir }}/rules-{{ item.phase | default('before_crs') | replace('_', '-') }}/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ nextcloud_modsecurity_custom_rules }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Reload nginx
+
+# renamed or removed rules must not stay loaded
+- name: Find deployed custom modsecurity rules
+  ansible.builtin.find:
+    paths:
+      - "{{ nextcloud_modsecurity_dir }}/rules-before-crs"
+      - "{{ nextcloud_modsecurity_dir }}/rules-after-crs"
+    patterns: "*.conf"
+    excludes: 00-placeholder.conf
+  register: nextcloud_modsecurity_deployed_rules
+
+- name: List of managed custom modsecurity rules
+  ansible.builtin.set_fact:
+    nextcloud_modsecurity_managed_rules: >-
+      {{ nextcloud_modsecurity_managed_rules | default([])
+         + [nextcloud_modsecurity_dir ~ '/rules-' ~ (item.phase | default('before_crs') | replace('_', '-')) ~ '/' ~ item.name ~ '.conf'] }}
+  loop: "{{ nextcloud_modsecurity_custom_rules }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Remove unmanaged custom modsecurity rules
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ nextcloud_modsecurity_deployed_rules.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: item.path not in nextcloud_modsecurity_managed_rules | default([])
+  notify: Reload nginx
+
+# config of role versions <= 35.0.x
+- name: Remove old modsecurity config
+  ansible.builtin.file:
+    path: "/etc/nginx/{{ item }}"
+    state: absent
+  loop:
+    - modsecurity_nextcloud.conf
+    - modsecurity_nextcloud_exclusions.conf
+  notify: Reload nginx

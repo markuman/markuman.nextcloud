@@ -254,6 +254,13 @@ releases:
         plus own exclusions for large webdav uploads (``SecRequestBodyLimitAction
         ProcessPartial``) and ``PUT``/``PATCH``/``DELETE`` on the OCS API. Use ``nextcloud_modsecurity_engine=DetectionOnly``
         for tuning.
+      - nextcloud install role - ModSecurity uses an own engine config in ``/etc/nginx/modsec/``
+        instead of the Debian default. The audit log is not world readable anymore
+        and does not contain request headers and bodies (app passwords, session cookies),
+        tmp and data dirs are owned by ``www-data`` instead of ``/tmp``.
+      - nextcloud install role - ``nextcloud_modsecurity_custom_rules`` for own ModSecurity
+        rules before or after the CRS. Removed rules are deleted.
+      - nextcloud install role - ``nginx -t`` runs before every nginx reload.
       - nextcloud install role - argument specs for all variables.
       - nextcloud install role - background jobs use cron mode.
       - nextcloud install role - coturn secret is generated once and the turn server

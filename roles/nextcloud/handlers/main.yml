@@ -17,6 +17,13 @@
     name: "php{{ nextcloud_php_version }}-fpm"
     state: restarted
 
+# validate first: with a broken config the running nginx keeps the old one,
+# instead of failing on the next restart
+- name: Validate nginx config
+  ansible.builtin.command: nginx -t
+  changed_when: false
+  listen: Reload nginx
+
 - name: Reload nginx
   ansible.builtin.systemd_service:
     name: nginx

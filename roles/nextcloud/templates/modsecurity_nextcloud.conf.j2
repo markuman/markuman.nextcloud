@@ -1,16 +1,7 @@
 # {{ ansible_managed }}
-
-# debian defaults (DetectionOnly, body limits, audit log, ...)
-Include /etc/nginx/modsecurity.conf
-
-SecRuleEngine {{ nextcloud_modsecurity_engine }}
-# no data leakage detection, but no buffering of (large) downloads either
-SecResponseBodyAccess Off
-# uploads are larger than SecRequestBodyLimit: inspect the first part, pass the rest
-SecRequestBodyLimitAction ProcessPartial
-
-# OWASP core rule set
-Include /etc/modsecurity/crs/crs-setup.conf
+#
+# nextcloud tuning, loaded after crs-setup.conf and before the crs rules.
+# rule ids 1000-1099 are reserved for the role.
 
 SecAction \
   "id:900000,\
@@ -20,6 +11,7 @@ SecAction \
   t:none,\
   setvar:tx.paranoia_level={{ nextcloud_modsecurity_paranoia_level }}"
 
+# nextcloud exclusions shipped with the crs (REQUEST-903.9003)
 SecAction \
   "id:900130,\
   phase:1,\
@@ -28,7 +20,25 @@ SecAction \
   t:none,\
   setvar:tx.crs_exclusions_nextcloud=1"
 
-Include /etc/nginx/modsecurity_nextcloud_exclusions.conf
-Include /etc/modsecurity/crs/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf
-Include /usr/share/modsecurity-crs/rules/*.conf
-Include /etc/modsecurity/crs/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf
+# webdav uploads: binary content, can be larger than SecRequestBodyLimit
+SecRule REQUEST_METHOD "@rx ^(?:PUT|MOVE|COPY)$" \
+  "id:1000,\
+  phase:1,\
+  pass,\
+  nolog,\
+  t:none,\
+  chain"
+  SecRule REQUEST_FILENAME "@rx ^/(?:remote|public)\.php/" \
+    "t:none,\
+    ctl:requestBodyAccess=Off"
+
+# the OCS API (users, groups, talk, ...) uses PUT and DELETE,
+# the crs exclusions only allow them for files_sharing.
+# phase 2, because tx.allowed_methods is initialized in phase 1.
+SecRule REQUEST_FILENAME "@rx ^/ocs/v[12]\.php/" \
+  "id:1010,\
+  phase:2,\
+  pass,\
+  nolog,\
+  t:none,\
+  setvar:'tx.allowed_methods=%{tx.allowed_methods} PUT PATCH DELETE'"

@@ -37,6 +37,9 @@ All variables are validated with `meta/argument_specs.yml`.
 | `nextcloud_tls_mode` | no | `letsencrypt` (or `selfsigned`) |
 | `nextcloud_modsecurity_engine` | no | `On` (or `DetectionOnly`, `Off`) |
 | `nextcloud_modsecurity_paranoia_level` | no | 1 |
+| `nextcloud_modsecurity_request_body_limit` | no | 104857600 |
+| `nextcloud_modsecurity_audit_log_parts` | no | `AFHZ` |
+| `nextcloud_modsecurity_custom_rules` | no | `[]` |
 | `nextcloud_max_upload_size` | no | 10G |
 | `nextcloud_apps` | no | `[bruteforcesettings, twofactor_totp]` |
 | `nextcloud_install_talk` | no | true |
@@ -58,6 +61,20 @@ MariaDB `root@localhost` uses `unix_socket` authentication (Debian default), so 
 
 If modsecurity blocks legit requests, set `nextcloud_modsecurity_engine: DetectionOnly`
 and check `/var/log/nginx/modsec_audit.log`.
+
+The ModSecurity config lives in `/etc/nginx/modsec/` and does not use the Debian default
+`/etc/nginx/modsecurity.conf`. Own rules go into `nextcloud_modsecurity_custom_rules`:
+
+```yml
+nextcloud_modsecurity_custom_rules:
+  - name: 10-block-shell-ifs
+    phase: before_crs  # or after_crs
+    content: |
+      SecRule REQUEST_URI_RAW "@contains ${IFS}" "id:10000,phase:1,deny,status:403,log,msg:'shell IFS in uri'"
+```
+
+Rule ids 1000-1099 are used by the role. Files that are no longer listed are removed.
+`nginx -t` runs before every reload, a broken rule keeps the running nginx alive.
 
 ### Upgrading from the Ubuntu/caddy based role (<= 29.x)
 

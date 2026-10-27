@@ -104,6 +104,50 @@ argument_specs:
         default: 1
         choices: [1, 2, 3, 4]
         description: OWASP CRS paranoia level.
+      nextcloud_modsecurity_request_body_limit:
+        type: int
+        default: 104857600
+        description:
+          - ModSecurity SecRequestBodyLimit in bytes.
+          - Larger bodies are inspected partially. WebDAV uploads skip the body inspection.
+      nextcloud_modsecurity_audit_engine:
+        type: str
+        default: RelevantOnly
+        choices: [RelevantOnly, "On", "Off"]
+        description: ModSecurity SecAuditEngine.
+      nextcloud_modsecurity_audit_relevant_status:
+        type: str
+        default: "^5"
+        description: ModSecurity SecAuditLogRelevantStatus. WAF hits are always logged.
+      nextcloud_modsecurity_audit_log_parts:
+        type: str
+        default: AFHZ
+        description:
+          - ModSecurity SecAuditLogParts.
+          - B, I and J log request headers and bodies, including app passwords and session cookies.
+      nextcloud_modsecurity_custom_rules:
+        type: list
+        elements: dict
+        default: []
+        description:
+          - Own ModSecurity rules, one file per item.
+          - Rule ids 1000-1099 are used by the role.
+        options:
+          name:
+            type: str
+            required: true
+            description: File name without C(.conf).
+          content:
+            type: str
+            required: true
+            description: SecLang rules.
+          phase:
+            type: str
+            default: before_crs
+            choices: [before_crs, after_crs]
+            description:
+              - V(before_crs) for SecAction setvar and ctl exclusions.
+              - V(after_crs) for SecRuleUpdateTarget* and SecRuleRemove*.
       nextcloud_php_memory_limit:
         type: str
         default: 1G
